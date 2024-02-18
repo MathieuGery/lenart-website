@@ -1,13 +1,22 @@
 import clsx from 'clsx'
 
-export function Container({
+type ContainerProps<T extends React.ElementType> = {
+  as?: T
+  className?: string
+  children: React.ReactNode
+}
+
+export function Container<T extends React.ElementType = 'div'>({
+  as,
   className,
-  ...props
-}: React.ComponentPropsWithoutRef<'div'>) {
+  children,
+}: Omit<React.ComponentPropsWithoutRef<T>, keyof ContainerProps<T>> &
+  ContainerProps<T>) {
+  let Component = as ?? 'div'
+
   return (
-    <div
-      className={clsx('mx-auto max-w-7xl px-4 sm:px-6 lg:px-8', className)}
-      {...props}
-    />
+    <Component className={clsx('mx-auto max-w-7xl px-6 lg:px-8', className)}>
+      <div className="mx-auto max-w-2xl lg:max-w-none">{children}</div>
+    </Component>
   )
 }

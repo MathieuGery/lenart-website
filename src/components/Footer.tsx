@@ -1,50 +1,117 @@
 import Link from 'next/link'
 
 import { Container } from '@/components/Container'
+import { FadeIn } from '@/components/FadeIn'
 import { Logo } from '@/components/Logo'
-import { NavLink } from '@/components/NavLink'
+import { socialMediaProfiles } from '@/components/SocialMedia'
+
+const navigation = [
+  {
+    title: 'Navigation',
+    links: [
+      { title: 'A propos', href: '/about' },
+      { title: 'Gallery', href: '/process' },
+      { title: 'Blog', href: '/blog' },
+      { title: 'Contact', href: '/contact' },
+    ],
+  },
+  {
+    title: 'Connect',
+    links: socialMediaProfiles,
+  },
+]
+
+function Navigation() {
+  return (
+    <nav>
+      <ul role="list" className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+        {navigation.map((section, sectionIndex) => (
+          <li key={sectionIndex}>
+            <div className="font-display text-sm font-semibold tracking-wider text-neutral-950">
+              {section.title}
+            </div>
+            <ul role="list" className="mt-4 text-sm text-neutral-700">
+              {section.links.map((link, linkIndex) => (
+                <li key={linkIndex} className="mt-4">
+                  <Link
+                    href={link.href}
+                    className="transition hover:text-neutral-950"
+                  >
+                    {link.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+function ArrowIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
+  return (
+    <svg viewBox="0 0 16 6" aria-hidden="true" {...props}>
+      <path
+        fill="currentColor"
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M16 3 10 .5v2H0v1h10v2L16 3Z"
+      />
+    </svg>
+  )
+}
+
+function NewsletterForm() {
+  return (
+    <form className="max-w-sm">
+      <h2 className="font-display text-sm font-semibold tracking-wider text-neutral-950">
+        Sign up for my newsletter
+      </h2>
+      <p className="mt-4 text-sm text-neutral-700">
+        Subscribe to get the latest news
+      </p>
+      <div className="relative mt-6">
+        <input
+          type="email"
+          placeholder="Email address"
+          autoComplete="email"
+          aria-label="Email address"
+          className="block w-full rounded-2xl border border-neutral-300 bg-transparent py-4 pl-6 pr-20 text-base/6 text-neutral-950 ring-4 ring-transparent transition placeholder:text-neutral-500 focus:border-neutral-950 focus:outline-none focus:ring-neutral-950/5"
+        />
+        <div className="absolute inset-y-1 right-1 flex justify-end">
+          <button
+            type="submit"
+            aria-label="Submit"
+            className="flex aspect-square h-full items-center justify-center rounded-xl bg-neutral-950 text-white transition hover:bg-neutral-800"
+          >
+            <ArrowIcon className="w-4" />
+          </button>
+        </div>
+      </div>
+    </form>
+  )
+}
 
 export function Footer() {
   return (
-    <footer className="bg-slate-50">
-      <Container>
-        <div className="py-16">
-          <Logo className="mx-auto h-10 w-auto" />
-          <nav className="mt-10 text-sm" aria-label="quick links">
-            <div className="-my-1 flex justify-center gap-x-6">
-              <NavLink href="#features">Features</NavLink>
-              <NavLink href="#testimonials">Testimonials</NavLink>
-              <NavLink href="#pricing">Pricing</NavLink>
-            </div>
-          </nav>
-        </div>
-        <div className="flex flex-col items-center border-t border-slate-400/10 py-10 sm:flex-row-reverse sm:justify-between">
-          <div className="flex gap-x-6">
-            <Link href="#" className="group" aria-label="TaxPal on X">
-              <svg
-                className="h-6 w-6 fill-slate-500 group-hover:fill-slate-700"
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-              >
-                <path d="M13.3174 10.7749L19.1457 4H17.7646L12.7039 9.88256L8.66193 4H4L10.1122 12.8955L4 20H5.38119L10.7254 13.7878L14.994 20H19.656L13.3171 10.7749H13.3174ZM11.4257 12.9738L10.8064 12.0881L5.87886 5.03974H8.00029L11.9769 10.728L12.5962 11.6137L17.7652 19.0075H15.6438L11.4257 12.9742V12.9738Z" />
-              </svg>
-            </Link>
-            <Link href="#" className="group" aria-label="TaxPal on GitHub">
-              <svg
-                className="h-6 w-6 fill-slate-500 group-hover:fill-slate-700"
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2Z" />
-              </svg>
-            </Link>
+    <Container as="footer" className="mt-24 w-full sm:mt-32 lg:mt-40">
+      <FadeIn>
+        <div className="grid grid-cols-1 gap-x-8 gap-y-16 lg:grid-cols-2">
+          <Navigation />
+          <div className="flex lg:justify-end">
+            <NewsletterForm />
           </div>
-          <p className="mt-6 text-sm text-slate-500 sm:mt-0">
-            Copyright &copy; {new Date().getFullYear()} TaxPal. All rights
-            reserved.
+        </div>
+        <div className="mb-20 mt-24 flex flex-wrap items-end justify-between gap-x-6 gap-y-4 border-t border-neutral-950/10 pt-12">
+          <Link href="/" aria-label="Home">
+            <Logo className="h-8" fillOnHover />
+          </Link>
+          <p className="text-sm text-neutral-700">
+            © lenart Inc. {new Date().getFullYear()}
           </p>
         </div>
-      </Container>
-    </footer>
+      </FadeIn>
+    </Container>
   )
 }
