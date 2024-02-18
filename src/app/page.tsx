@@ -29,7 +29,7 @@ const clients = [
   ['Home Work', logoHomeWork],
   ['Green Life', logoGreenLife],
   ['Bright Path', logoBrightPath],
-  ['North Adventures', logoNorthAdventures],
+  ['North Adventures', logoNorthAdventures]
 ]
 
 function Clients() {
@@ -40,7 +40,7 @@ function Clients() {
           <h2 className="text-center font-display text-sm font-semibold tracking-wider text-white sm:text-left">
             The best photograph ever existed
           </h2>
-          <div className="h-px flex-auto bg-neutral-800" />
+          <div className="h-px flex-auto bg-neutral-800"/>
         </FadeIn>
         <FadeInStagger faster>
           <ul
@@ -50,7 +50,7 @@ function Clients() {
             {clients.map(([client, logo]) => (
               <li key={client}>
                 <FadeIn>
-                  <Image src={logo} alt={client} unoptimized />
+                  <Image src={logo} alt={client} unoptimized/>
                 </FadeIn>
               </li>
             ))}
@@ -62,8 +62,8 @@ function Clients() {
 }
 
 function CaseStudies({
-  caseStudies,
-}: {
+                       caseStudies
+                     }: {
   caseStudies: Array<MDXEntry<CaseStudy>>
 }) {
   return (
@@ -73,17 +73,18 @@ function CaseStudies({
         className="mt-24 sm:mt-32 lg:mt-40"
       >
         <p>
-         best photos everyday
+          best photos everyday
         </p>
       </SectionIntro>
       <Container className="mt-16">
         <FadeInStagger className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {caseStudies.map((caseStudy) => (
             <FadeIn key={caseStudy.href} className="flex">
-              <article className="relative flex w-full flex-col rounded-3xl p-6 ring-1 ring-neutral-950/5 transition hover:bg-neutral-50 sm:p-8">
+              <article
+                className="relative flex w-full flex-col rounded-3xl p-6 ring-1 ring-neutral-950/5 transition hover:bg-neutral-50 sm:p-8">
                 <h3>
                   <Link href={caseStudy.href}>
-                    <span className="absolute inset-0 rounded-3xl" />
+                    <span className="absolute inset-0 rounded-3xl"/>
                     <Image
                       src={caseStudy.logo}
                       alt={caseStudy.client}
@@ -124,12 +125,12 @@ function Services() {
     <>
       <SectionIntro
         eyebrow="Services"
-        title="We help you identify, explore and respond to new opportunities."
+        title="I make the best photos ever existed"
         className="mt-24 sm:mt-32 lg:mt-40"
       >
         <p>
-          As long as those opportunities involve giving us money to re-purpose
-          old projects — we can come up with an endless number of those.
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ab, accusamus adipisci debitis delectus dicta hic
+          ipsa ipsam ipsum nostrum, optio quasi qui quis rem repellat sequi sint velit vitae voluptas?
         </p>
       </SectionIntro>
       <Container className="mt-16">
@@ -144,24 +145,25 @@ function Services() {
             </FadeIn>
           </div>
           <List className="mt-16 lg:mt-0 lg:w-1/2 lg:min-w-[33rem] lg:pl-4">
-            <ListItem title="Web development">
-              We specialise in crafting beautiful, high quality marketing pages.
-              The rest of the website will be a shell that uses lorem ipsum
-              everywhere.
+            <ListItem title="truc muche">
+              Lorem ipsum dolor sit amet, consectetur adipisicing elit. Atque laudantium nostrum reprehenderit vitae.
+              Harum illum nulla perferendis reiciendis! Corporis dicta doloremque eaque esse illum magni praesentium
+              quod quos soluta tenetur!
             </ListItem>
-            <ListItem title="Application development">
-              We have a team of skilled developers who are experts in the latest
-              app frameworks, like Angular 1 and Google Web Toolkit.
+            <ListItem title="truc muche">
+              Lorem ipsum dolor sit amet, consectetur adipisicing elit. A adipisci at commodi deserunt, ducimus ea eum
+              eveniet maxime numquam officia perferendis possimus praesentium sit, suscipit totam vel voluptatem
+              voluptates voluptatum.
             </ListItem>
-            <ListItem title="E-commerce">
-              We are at the forefront of modern e-commerce development. Which
-              mainly means adding your logo to the Shopify store template we’ve
-              used for the past six years.
+            <ListItem title="truc muche">
+              Lorem ipsum dolor sit amet, consectetur adipisicing elit. Amet debitis dolorem ducimus ea eius ipsum
+              laudantium, minima modi nemo officia, porro quia sequi sint veritatis voluptas? Adipisci deserunt modi
+              porro.
             </ListItem>
-            <ListItem title="Custom content management">
-              At Studio we understand the importance of having a robust and
-              customised CMS. That’s why we run all of our client projects out
-              of a single, enormous Joomla instance.
+            <ListItem title="truc muche">
+              Lorem ipsum dolor sit amet, consectetur adipisicing elit. A adipisci et eveniet necessitatibus nesciunt,
+              nostrum officiis veritatis voluptas? Animi impedit in ipsum magni nemo officiis quam quas recusandae
+              sapiente voluptatum?
             </ListItem>
           </List>
         </div>
@@ -172,7 +174,7 @@ function Services() {
 
 export const metadata: Metadata = {
   description:
-    'We are a development studio working at the intersection of design and technology.',
+    'We are a development studio working at the intersection of design and technology.'
 }
 
 export default async function Home() {
@@ -182,28 +184,31 @@ export default async function Home() {
     <>
       <Container className="mt-24 sm:mt-32 md:mt-56">
         <FadeIn className="max-w-3xl">
-          <h1 className="font-display text-5xl font-medium tracking-tight text-neutral-950 [text-wrap:balance] sm:text-7xl">
+          <h1
+            className="font-display text-5xl font-medium tracking-tight text-neutral-950 [text-wrap:balance] sm:text-7xl">
             Best photos Lenart
           </h1>
           <p className="mt-6 text-xl text-neutral-600">
-           Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ab accusamus amet autem, blanditiis delectus dolor dolorem itaque libero minus necessitatibus nulla officia perferendis perspiciatis porro rerum saepe similique temporibus unde.
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ab accusamus amet autem, blanditiis delectus dolor
+            dolorem itaque libero minus necessitatibus nulla officia perferendis perspiciatis porro rerum saepe
+            similique temporibus unde.
           </p>
         </FadeIn>
       </Container>
 
 
-      <CaseStudies caseStudies={caseStudies} />
-
+      {/* <CaseStudies caseStudies={caseStudies} />
+*/}
       <Testimonial
         className="mt-24 sm:mt-32 lg:mt-40"
-        client={{ name: 'Trcu machine', logo: logoUnseal }}
+        client={{name: 'Trcu machine', logo: logoUnseal}}
       >
         lorem ipsum dolor sit amet, consectetur adipisicing elit. Ab accusamus
       </Testimonial>
 
-      <Services />
+      <Services/>
 
-      <ContactSection />
+      <ContactSection/>
     </>
   )
 }
