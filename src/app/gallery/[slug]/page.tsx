@@ -6,14 +6,14 @@ import { FadeIn } from '@/components/FadeIn'
 import Link from 'next/link'
 import { redirect404 } from '@/app/gallery/action'
 
+export const revalidate = 0
+
 export default async function GalleryAmzId({ params }: { params: { slug: string } }) {
   const {data: GalleryAmz} = await supabase
     .from('GalleryAmz')
     .select()
     .eq('code', params.slug)
     .order('date', {ascending: true})
-
-  console.log(params)
 
   if (!GalleryAmz?.length) {
     await redirect404()
