@@ -1,71 +1,51 @@
-import { PageIntro } from '@/components/PageIntro'
-import clsx from 'clsx'
-import { Container } from '@/components/Container'
-import { FadeIn } from '@/components/FadeIn'
-import { supabase } from '@/utils/supabase'
-import Link from 'next/link'
+import { navigate } from './action'
+import { LockClosedIcon } from '@heroicons/react/24/solid'
 
-export const revalidate = 0
 export default async function Gallery() {
-
-  const {data: GalleryAmz, error} = await supabase
-    .from('GalleryAmz')
-    .select()
-    .order('date', { ascending: true })
-
-  if (!GalleryAmz) {
-    return (
-      <div>Not found</div>
-    )
-  }
-
   return (
-    <>
-      <PageIntro
-        eyebrow="My work"
-        title="La gallery"
-      >
-        <p>
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Atque dicta dolore ea eius eos, in iure labore
-          laboriosam magnam magni maxime molestias nam nemo obcaecati officiis optio porro ratione similique.
-        </p>
-      </PageIntro>
-
-      <Container
-        className={clsx('mt-24 sm:mt-32 lg:mt-40', 'text-center')}
-      >
-        <FadeIn>
-          <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {GalleryAmz.map((session) => (
-              <li
-                key={session.title}
-                className="col-span-1 flex flex-col divide-y divide-gray-200 rounded-lg bg-white text-center shadow"
-              >
-                <div className="flex flex-1 flex-col p-8">
-                  <img className="mx-auto h-32 w-32 flex-shrink-0 rounded-full" src={'https://lvrhiybjdwdablbqawtf.supabase.co/storage/v1/object/public/GalleryAmz/' + session.id + '.jpg'} alt=""/>
-                  <h3 className="mt-6 text-sm font-medium text-gray-900">{session.title}</h3>
-                  <dl className="mt-1 flex flex-grow flex-col justify-between">
-                    <dt className="sr-only">Title</dt>
-                    <dd className="text-sm text-gray-500">{session.date}</dd>
-                    <dt className="sr-only">Role</dt>
-                    <dd className="mt-3">
-                      <Link href={session.link}>
-                        <button
-                          type="button"
-                          className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                        >
-                          Accéder aux photos
-                        </button>
-                      </Link>
-                    </dd>
-                  </dl>
+    <div className="h-screen flex items-center justify-center z-10">
+      <div className="fixed">
+        <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+          <div
+            className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6">
+            <div>
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full ring-neutral-800">
+                <LockClosedIcon className="h-6 w-6 text-neutral-950" aria-hidden="true"/>
+              </div>
+              <div className="mt-3 text-center sm:mt-5">
+                <div className="text-base font-semibold leading-6 text-gray-900">
+                  Accéder à vos photos
                 </div>
-              </li>
-            ))}
-          </ul>
-        </FadeIn>
-      </Container>
-    </>
-
+                <div className="mt-2">
+                  <p className="text-sm text-gray-500">
+                    Saisir le code pour avoir accès à la gallerie.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-5 sm:mt-6">
+              <form action={navigate}>
+                <div className="mb-2 mx-10">
+                  <input
+                    type="text"
+                    name="id"
+                    id="code"
+                    className="text-center px-4 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-neutral-900 sm:text-sm sm:leading-6"
+                    placeholder="1234"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="inline-flex w-full justify-center rounded-md bg-neutral-950 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-neutral-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                >
+                  Accéder aux photos
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }

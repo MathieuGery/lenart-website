@@ -17,7 +17,7 @@ export default function NotFound() {
           Désolé, nous n'avons pas trouvé la page que vous recherchez.
         </p>
         <Link
-          href="/"
+          href="/gallery"
           className="mt-4 text-sm font-semibold text-neutral-950 transition hover:text-neutral-700"
         >
           Aller à la page d'accueil
