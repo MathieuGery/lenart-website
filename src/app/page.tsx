@@ -174,7 +174,7 @@ function Services() {
 
 export const metadata: Metadata = {
   description:
-    'We are a development studio working at the intersection of design and technology.'
+    'len-art photographie'
 }
 
 export default async function Home() {
