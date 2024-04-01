@@ -13,7 +13,7 @@ export default async function GalleryAmzId({ params }: { params: { slug: string 
     .from('GalleryAmz')
     .select()
     .eq('code', params.slug)
-    .order('date', {ascending: true})
+    .order('created_at', {ascending: true})
 
   if (!GalleryAmz?.length) {
     await redirect404()
