@@ -21,7 +21,7 @@ export default function Gallery() {
                 </div>
                 <div className="mt-2">
                   <p className="text-sm text-gray-500">
-                    Saisir le code pour avoir accès à la gallerie.
+                    Saisir le code pour avoir accès à la galerie.
                   </p>
                 </div>
               </div>
