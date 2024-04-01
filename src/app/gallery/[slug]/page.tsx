@@ -45,7 +45,7 @@ export default async function GalleryAmzId({ params }: { params: { slug: string 
                 className="col-span-1 flex flex-col divide-y divide-gray-200 rounded-lg bg-white text-center shadow"
               >
                 <div className="flex flex-1 flex-col p-8">
-                  <img className="mx-auto h-32 w-32 flex-shrink-0 rounded-full"
+                  <img className="object-cover mx-auto h-32 w-32 flex-shrink-0 rounded-full"
                        src={'https://lvrhiybjdwdablbqawtf.supabase.co/storage/v1/object/public/GalleryAmz/' + session.id + '.jpg'}
                        alt=""/>
                   <h3 className="mt-6 text-sm font-medium text-gray-900">{session.title}</h3>
