@@ -18,7 +18,7 @@ import logoNorthAdventures from '@/images/clients/north-adventures/logo-light.sv
 import logoPhobiaLight from '@/images/clients/phobia/logo-light.svg'
 import logoUnseal from '@/images/clients/unseal/logo-light.svg'
 import imageLaptop from '@/images/laptop.jpg'
-import { type CaseStudy, type MDXEntry, loadCaseStudies } from '@/lib/mdx'
+import { type CaseStudy, loadCaseStudies, type MDXEntry } from '@/lib/mdx'
 
 const clients = [
   ['Phobia', logoPhobiaLight],

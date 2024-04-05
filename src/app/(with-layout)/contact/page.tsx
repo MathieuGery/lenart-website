@@ -6,7 +6,6 @@ import { Border } from '@/components/Border'
 import { Button } from '@/components/Button'
 import { Container } from '@/components/Container'
 import { FadeIn } from '@/components/FadeIn'
-import { Offices } from '@/components/Offices'
 import { PageIntro } from '@/components/PageIntro'
 import { SocialMedia } from '@/components/SocialMedia'
 

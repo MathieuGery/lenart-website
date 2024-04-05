@@ -4,7 +4,7 @@ import { Container } from '@/components/Container'
 import clsx from 'clsx'
 import { FadeIn } from '@/components/FadeIn'
 import Link from 'next/link'
-import { redirect404 } from '@/app/gallery/action'
+import { redirect404 } from '@/app/(without-layout)/gallery/action'
 
 export const revalidate = 0
 
