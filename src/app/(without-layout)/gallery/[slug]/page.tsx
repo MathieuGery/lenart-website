@@ -26,10 +26,6 @@ export default async function GalleryAmzId({ params }: { params: { slug: string 
         title="Galeries photos"
       >
         <p>
-          Retrouvez les photos de votre parcours
-          Vous pouvez passer commande en me contactant sur contact@len-art.fr ou mes réseaux sociaux instagram len_._art ou Léna Noailles.
-          </p>
-        <p>
           Les photos sont dotés d’un watermark afin de prévenir de tout vol. Il sera retiré après confirmation de la commande. Les photos sont systématiquement retouchées (lumière, zoom, cadrage, etc.)
         </p>
       </PageIntro>
