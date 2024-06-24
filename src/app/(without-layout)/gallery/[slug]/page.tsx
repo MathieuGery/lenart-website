@@ -26,7 +26,7 @@ export default async function GalleryAmzId({ params }: { params: { slug: string 
         title="Galeries photos"
       >
         <p>
-          Les photos sont dotés d’un watermark afin de prévenir de tout vol. Il sera retiré après confirmation de la commande. Les photos sont systématiquement retouchées (lumière, zoom, cadrage, etc.)
+          Les photos sont dotées d’un watermark afin de prévenir de tout vol. Il sera retiré après confirmation de la commande. Les photos sont systématiquement retouchées (lumière, zoom, cadrage, etc.)
         </p>
       </PageIntro>
 
