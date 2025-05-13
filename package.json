@@ -10,6 +10,7 @@
   },
   "browserslist": "defaults, not ie <= 11",
   "dependencies": {
+    "@headlessui/react": "^2.2.3",
     "@heroicons/react": "^2.1.1",
     "@leafac/rehype-shiki": "^2.2.1",
     "@mdx-js/loader": "^3.0.0",
