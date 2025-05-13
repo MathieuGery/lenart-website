@@ -1,7 +1,6 @@
 import { type Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-
 import { Blockquote } from '@/components/Blockquote'
 import { Border } from '@/components/Border'
 import { Button } from '@/components/Button'
@@ -18,6 +17,8 @@ import logoPhobia from '@/images/clients/phobia/logo-dark.svg'
 import logoUnseal from '@/images/clients/unseal/logo-dark.svg'
 import { formatDate } from '@/lib/formatDate'
 import { type CaseStudy, loadCaseStudies, type MDXEntry } from '@/lib/mdx'
+import fs from 'fs'
+import path from 'path'
 
 function CaseStudies({
   caseStudies,
@@ -135,9 +136,9 @@ function Clients() {
 }
 
 export const metadata: Metadata = {
-  title: 'Our Work',
+  title: 'Mon Travail',
   description:
-    'We believe in efficiency and maximizing our resources to provide the best value to our clients.',
+    'Découvrez mes projets récents, des portraits aux mariages, en passant par des séances en extérieur avec les chevaux.',
 }
 
 export default async function Work() {
@@ -146,15 +147,21 @@ export default async function Work() {
   return (
     <>
       <PageIntro
-        eyebrow="My work"
-        title="La gallery"
+        eyebrow="La galerie"
+        title="La galerie"
       >
         <p>
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Atque dicta dolore ea eius eos, in iure labore laboriosam magnam magni maxime molestias nam nemo obcaecati officiis optio porro ratione similique.
+          Chaque image raconte une histoire, capture une émotion, un instant unique. Cette galerie est un aperçu de mon univers, de ma sensibilité et de mon regard sur le monde.
+          Vous y découvrirez une sélection de mes projets récents : portraits, mariages, séances en extérieur avec les chevaux...
+          Chaque photo reflète une rencontre, un moment partagé, une lumière particulière. Prenez le temps de parcourir ces images, et laissez-vous inspirer.
         </p>
       </PageIntro>
 
-     {/* <CaseStudies caseStudies={caseStudies} />
+      {/* Render the gallery component */}
+      <Gallery />
+
+
+      {/* <CaseStudies caseStudies={caseStudies} />
 
       <Testimonial
         className="mt-24 sm:mt-32 lg:mt-40"
@@ -170,3 +177,62 @@ export default async function Work() {
     </>
   )
 }
+
+async function getGalleryImages() {
+  const galleryDir = path.join(process.cwd(), 'public', 'images', 'gallery')
+
+  try {
+    const files = await fs.promises.readdir(galleryDir)
+    return files
+      .filter(file => /\.(jpg|jpeg|png)$/i.test(file))
+      .map(file => ({
+        src: `/images/gallery/${file}`,
+        alt: file.split('.')[0].replace(/-/g, ' '),
+      }))
+  } catch (error) {
+    console.error('Error reading gallery directory:', error)
+    return []
+  }
+}
+
+// Gallery component using Server Component pattern
+const Gallery = async () => {
+  const galleryImages: { src: string; alt: string; }[] = await getGalleryImages()
+
+  // Split images into 4 groups for the columns
+  const splitIntoColumns = (images: { src: string; alt: string; }[]) => {
+    const columns = [[], [], [], []]
+    images.forEach((image, index) => {
+      columns[index % 4].push(image as never)
+    })
+    return columns
+  }
+
+  const columns = splitIntoColumns(galleryImages)
+
+  return (
+    <Container className="mt-16 sm:mt-20">
+      <FadeInStagger>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {columns.map((column, colIndex) => (
+            <div key={colIndex} className="grid gap-4">
+              {column.map((image: { src: string; alt: string; }, imgIndex) => (
+                <FadeIn key={`${colIndex}-${imgIndex}`}>
+                  <div>
+                    <Image
+                      className="h-auto max-w-full rounded-lg object-cover object-center transition-transform duration-300 hover:scale-105"
+                      src={image.src}
+                      alt={image.alt}
+                      width={500}
+                      height={350}
+                    />
+                  </div>
+                </FadeIn>
+              ))}
+            </div>
+          ))}
+        </div>
+      </FadeInStagger>
+    </Container>
+  );
+};

@@ -58,7 +58,7 @@ function ContactForm() {
           Prise de contact
         </h2>
         <div className="isolate mt-6 -space-y-px rounded-2xl bg-white/50">
-          <TextInput label="Name" name="name" autoComplete="name" />
+          <TextInput label="Nom" name="name" autoComplete="name" required/>
           <TextInput
             label="Email"
             type="email"
@@ -66,21 +66,24 @@ function ContactForm() {
             autoComplete="email"
             required
           />
-          <TextInput label="Message" name="message"/>
-          <div className="border border-neutral-300 px-6 py-8 first:rounded-t-2xl last:rounded-b-2xl">
-            <fieldset>
-              <legend className="text-base/6 text-neutral-500">Budget</legend>
-              <div className="mt-6 grid grid-cols-1 gap-8 sm:grid-cols-2">
-                <RadioInput label="$25K – $50K" name="budget" value="25" />
-                <RadioInput label="$50K – $100K" name="budget" value="50" />
-                <RadioInput label="$100K – $150K" name="budget" value="100" />
-                <RadioInput label="More than $150K" name="budget" value="150" />
-              </div>
-            </fieldset>
-          </div>
+            <div className="group relative z-0 transition-all focus-within:z-10">
+            <textarea
+              id="message"
+              name="message"
+              placeholder=" "
+              className="peer block w-full border border-neutral-300 bg-transparent px-6 pb-4 pt-6 text-base/6 text-neutral-950 ring-4 ring-transparent transition focus:border-neutral-950 focus:outline-none focus:ring-neutral-950/5 group-first:rounded-t-2xl group-last:rounded-b-2xl"
+              rows={6}
+            />
+            <label
+              htmlFor="message"
+              className="pointer-events-none absolute left-6 top-4 origin-left text-base/6 text-neutral-500 transition-all duration-200 peer-focus:top-2 peer-focus:scale-75 peer-focus:font-semibold peer-focus:text-neutral-950 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:font-normal peer-placeholder-shown:text-neutral-500"
+            >
+              Message
+            </label>
+            </div>
         </div>
         <Button type="submit" className="mt-10">
-          Let’s work together
+          Contactez-moi
         </Button>
       </form>
     </FadeIn>
@@ -91,10 +94,12 @@ function ContactDetails() {
   return (
     <FadeIn>
       <h2 className="font-display text-base font-semibold text-neutral-950">
-        Our offices
+        Contactez moi
       </h2>
       <p className="mt-6 text-base text-neutral-600">
-Lorem ipsum dolor sit amet, consectetur adipisicing elit. Amet animi autem cumque dolor, dolore eos, fugiat illum magnam nam quidem quis quos rem sit soluta tempora totam velit veritatis voluptates.
+        Vous avez un projet, une envie, ou simplement une question ?
+        Je suis à votre écoute. Que ce soit pour une séance photo, un événement à couvrir ou toute autre demande, n’hésitez pas à me contacter.
+        Remplissez le formulaire ci-dessous ou écrivez-moi directement par e-mail. Je vous répondrai dans les plus brefs délais.
       </p>
 
       <Border className="mt-16 pt-16">
@@ -102,22 +107,28 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit. Amet animi autem cumqu
           Me contacter directement
         </h2>
         <dl className="mt-6 grid grid-cols-1 gap-8 text-sm sm:grid-cols-2">
-          {[
-            ['Email', 'lena@len-art.fr'],
-            ['Press', 'press@studioagency.com'],
-          ].map(([label, email]) => (
-            <div key={email}>
-              <dt className="font-semibold text-neutral-950">{label}</dt>
-              <dd>
-                <Link
-                  href={`mailto:${email}`}
-                  className="text-neutral-600 hover:text-neutral-950"
-                >
-                  {email}
-                </Link>
-              </dd>
+            <div>
+            <dt className="font-semibold text-neutral-950">Email</dt>
+            <dd>
+              <Link
+              href="mailto:contact@len-art.fr"
+              className="text-neutral-600 hover:text-neutral-950"
+              >
+              contact@len-art.fr
+              </Link>
+            </dd>
             </div>
-          ))}
+            <div>
+            <dt className="font-semibold text-neutral-950">Instagram</dt>
+            <dd>
+              <Link
+              href="https://instagram.com/len_._art"
+              className="text-neutral-600 hover:text-neutral-950"
+              >
+              @len_._art
+              </Link>
+            </dd>
+            </div>
         </dl>
       </Border>
 
@@ -133,14 +144,14 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit. Amet animi autem cumqu
 
 export const metadata: Metadata = {
   title: 'Contact',
-  description: 'Let’s work together. We can’t wait to hear from you.',
+  description: 'Un projet, une envie, ou simplement une question.',
 }
 
 export default function Contact() {
   return (
     <>
-      <PageIntro eyebrow="Contact us" title="Let’s work together">
-        <p>We can’t wait to hear from you.</p>
+      <PageIntro eyebrow="Contactez moi" title="Réalisons vos envies ensemble">
+        <p>Un projet, une envie, ou simplement une question.</p>
       </PageIntro>
 
       <Container className="mt-24 sm:mt-32 lg:mt-40">

@@ -18,7 +18,7 @@ import { Container } from '@/components/Container'
 import { Footer } from '@/components/Footer'
 import { GridPattern } from '@/components/GridPattern'
 import { Logo, Logomark } from '@/components/Logo'
-import { Offices } from '@/components/Offices'
+import { ContactCallToAction } from '@/components/ContactCallToAction'
 import { SocialMedia } from '@/components/SocialMedia'
 
 const RootLayoutContext = createContext<{
@@ -144,11 +144,11 @@ function Navigation() {
   return (
     <nav className="mt-px font-display text-5xl font-medium tracking-tight text-white">
       <NavigationRow>
-        <NavigationItem href="/work">Gallery</NavigationItem>
+        <NavigationItem href="/work">Galerie</NavigationItem>
         <NavigationItem href="/about">A propos</NavigationItem>
       </NavigationRow>
       <NavigationRow>
-        <NavigationItem href="/process">Me guider</NavigationItem>
+        <NavigationItem href="/tarifs">Tarifs</NavigationItem>
         <NavigationItem href="/contact">Contact</NavigationItem>
       </NavigationRow>
     </nav>
@@ -237,7 +237,7 @@ function RootLayoutInner({children}: { children: React.ReactNode }) {
                     <h2 className="font-display text-base font-semibold text-white">
                       Informations
                     </h2>
-                    <Offices
+                    <ContactCallToAction
                       invert
                       className="mt-6 grid grid-cols-1 gap-8 sm:grid-cols-2"
                     />
