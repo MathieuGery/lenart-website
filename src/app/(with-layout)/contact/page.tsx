@@ -1,4 +1,5 @@
-import { useId } from 'react'
+'use client'
+import { useId, useState } from 'react'
 import { type Metadata } from 'next'
 import Link from 'next/link'
 
@@ -50,29 +51,70 @@ function RadioInput({
   )
 }
 
+
 function ContactForm() {
+  const [inputs, setInputs] = useState({
+    email: '',
+    subject: '',
+    message: '',
+    name: ''
+  })
+  const [successMessage, setSuccessMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleOnChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setInputs((prev) => ({
+      ...prev,
+      [event.target.id]: event.target.value
+    }))
+  }
+
+  const handleOnSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setSuccessMessage('')
+    setErrorMessage('')
+    setLoading(true)
+
+    try {
+      const response = await fetch(process.env.NEXT_PUBLIC_FORM_BOLD_URL as string, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(inputs)
+      })
+
+      if (!response.ok) {
+        throw new Error('Erreur réseau')
+      }
+
+      setSuccessMessage('Votre message a bien été envoyé. Merci !')
+      setInputs({ email: '', subject: '', message: '', name: '' })
+    } catch (error) {
+      setErrorMessage('Une erreur est survenue. Veuillez réessayer plus tard.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <FadeIn className="lg:order-last">
-      <form>
+      <form onSubmit={handleOnSubmit}>
         <h2 className="font-display text-base font-semibold text-neutral-950">
           Prise de contact
         </h2>
         <div className="isolate mt-6 -space-y-px rounded-2xl bg-white/50">
-          <TextInput label="Nom" name="name" autoComplete="name" required/>
-          <TextInput
-            label="Email"
-            type="email"
-            name="email"
-            autoComplete="email"
-            required
-          />
-            <div className="group relative z-0 transition-all focus-within:z-10">
+          <TextInput label="Nom" name="name" id="name" autoComplete="name" onChange={handleOnChange} value={inputs.name} required />
+          <TextInput label="Email" type="email" id="email" name="email" autoComplete="email" onChange={handleOnChange} value={inputs.email} required />
+          <div className="group relative z-0 transition-all focus-within:z-10">
             <textarea
               id="message"
               name="message"
               placeholder=" "
               className="peer block w-full border border-neutral-300 bg-transparent px-6 pb-4 pt-6 text-base/6 text-neutral-950 ring-4 ring-transparent transition focus:border-neutral-950 focus:outline-none focus:ring-neutral-950/5 group-first:rounded-t-2xl group-last:rounded-b-2xl"
               rows={6}
+              onChange={handleOnChange}
+              value={inputs.message}
+              required
             />
             <label
               htmlFor="message"
@@ -80,11 +122,33 @@ function ContactForm() {
             >
               Message
             </label>
-            </div>
+          </div>
         </div>
-        <Button type="submit" className="mt-10">
-          Contactez-moi
+
+        <Button type="submit" className="mt-10" disabled={loading}>
+          {loading ? (
+            <div className="flex items-center gap-2">
+              <svg className="h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                ></path>
+              </svg>
+              Envoi en cours...
+            </div>
+          ) : (
+            'Contactez-moi'
+          )}
         </Button>
+
+        {successMessage && (
+          <p className="mt-4 text-green-700 font-medium">{successMessage}</p>
+        )}
+        {errorMessage && (
+          <p className="mt-4 text-red-600 font-medium">{errorMessage}</p>
+        )}
       </form>
     </FadeIn>
   )
@@ -107,28 +171,28 @@ function ContactDetails() {
           Me contacter directement
         </h2>
         <dl className="mt-6 grid grid-cols-1 gap-8 text-sm sm:grid-cols-2">
-            <div>
+          <div>
             <dt className="font-semibold text-neutral-950">Email</dt>
             <dd>
               <Link
-              href="mailto:contact@len-art.fr"
-              className="text-neutral-600 hover:text-neutral-950"
+                href="mailto:contact@len-art.fr"
+                className="text-neutral-600 hover:text-neutral-950"
               >
-              contact@len-art.fr
+                contact@len-art.fr
               </Link>
             </dd>
-            </div>
-            <div>
+          </div>
+          <div>
             <dt className="font-semibold text-neutral-950">Instagram</dt>
             <dd>
               <Link
-              href="https://instagram.com/len_._art"
-              className="text-neutral-600 hover:text-neutral-950"
+                href="https://instagram.com/len_._art"
+                className="text-neutral-600 hover:text-neutral-950"
               >
-              @len_._art
+                @len_._art
               </Link>
             </dd>
-            </div>
+          </div>
         </dl>
       </Border>
 
@@ -142,10 +206,10 @@ function ContactDetails() {
   )
 }
 
-export const metadata: Metadata = {
-  title: 'Contact',
-  description: 'Un projet, une envie, ou simplement une question.',
-}
+// export const metadata: Metadata = {
+//   title: 'Contact',
+//   description: 'Un projet, une envie, ou simplement une question.',
+// }
 
 export default function Contact() {
   return (
@@ -163,3 +227,5 @@ export default function Contact() {
     </>
   )
 }
+
+
