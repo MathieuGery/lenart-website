@@ -16,41 +16,42 @@ export default function Tarifs() {
         </p>
       </PageIntro>
 
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 mt-20">
-        <div className="mx-auto flex justify-center">
-          <div className="inline-flex rounded-md bg-gray-100 p-1 shadow-sm">
-            <button
-              onClick={() => setSelectedCategory('equitation')}
-              className={`relative px-6 py-2 text-sm font-medium transition-all duration-200 ease-in-out ${selectedCategory === 'equitation'
+      <FadeIn>
+        <div className="mx-auto max-w-7xl px-6 lg:px-8 mt-20">
+          <div className="mx-auto flex justify-center">
+            <div className="inline-flex rounded-md bg-gray-100 p-1 shadow-sm">
+              <button
+                onClick={() => setSelectedCategory('equitation')}
+                className={`relative px-6 py-2 text-sm font-medium transition-all duration-200 ease-in-out ${selectedCategory === 'equitation'
                   ? 'bg-white text-gray-900 rounded-md shadow-sm z-10'
                   : 'text-gray-700 hover:text-gray-900'
-                }`}
-            >
-              Tarifs Équitation
-            </button>
-            <button
-              onClick={() => setSelectedCategory('shooting')}
-              className={`relative px-6 py-2 text-sm font-medium transition-all duration-200 ease-in-out ${selectedCategory === 'shooting'
+                  }`}
+              >
+                Tarifs Équitation
+              </button>
+              <button
+                onClick={() => setSelectedCategory('shooting')}
+                className={`relative px-6 py-2 text-sm font-medium transition-all duration-200 ease-in-out ${selectedCategory === 'shooting'
                   ? 'bg-white text-gray-900 rounded-md shadow-sm z-10'
                   : 'text-gray-700 hover:text-gray-900'
-                }`}
-            >
-              Tarifs Shooting
-            </button>
+                  }`}
+              >
+                Tarifs Shooting
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-
+      </FadeIn>
       {selectedCategory === 'equitation' && (
         <>
-          <Container
-            className='sm:pt-10 pt-10'
-          >
-            <span className="block text-5xl font-display font-semibold text-neutral-950">
-              Tarifs Equitation
-            </span>
-          </Container>
           <FadeIn>
+            <Container
+              className='sm:pt-10 pt-10'
+            >
+              <span className="block text-5xl font-display font-semibold text-neutral-950">
+                Tarifs Equitation
+              </span>
+            </Container>
             <TarifsCardsEquitation />
           </FadeIn>
         </>
@@ -84,7 +85,7 @@ const tiersShooting = [
     name: 'Forfait 1',
     id: 'tier-1',
     price: '€40',
-    description: 'The essentials to provide your best work for clients.',
+    description: 'Forfait idéal pour un souvenir unique de cette journée',
     features: ['30 min de prises de vue', '5 photos'],
     featured: false,
   },
@@ -92,7 +93,7 @@ const tiersShooting = [
     name: 'Forfait 2',
     id: 'tier-2',
     price: '€75',
-    description: 'The essentials to provide your best work for clients.',
+    description: 'Forfait idéal pour un souvenir unique de cette journée',
     features: ['1h de prises de vue', '10 photos'],
     featured: false,
   },
@@ -100,7 +101,7 @@ const tiersShooting = [
     name: 'Forfait 3',
     id: 'tier-2',
     price: '€90',
-    description: 'The essentials to provide your best work for clients.',
+    description: 'Forfait idéal pour un souvenir unique de cette journée',
     features: ['1h30 de prises de vue', '20 photos'],
     featured: false,
   },
@@ -108,7 +109,7 @@ const tiersShooting = [
     name: 'Formule dressage',
     id: 'tier-dressage',
     price: '€50',
-    description: 'The essentials to provide your best work for clients.',
+    description: 'Forfait idéal pour un souvenir unique de cette journée',
     features: ['Suivi de la reprise sur 30 min', '15 photos'],
     featured: false,
   },
@@ -116,7 +117,7 @@ const tiersShooting = [
     name: 'Formule obstacles',
     id: 'tier-obstacles',
     price: '€75',
-    description: 'The essentials to provide your best work for clients.',
+    description: 'Forfait idéal pour un souvenir unique de cette journée',
     features: ['Suivi de la reprise sur 1h', '25 photos'],
     featured: false,
   },
@@ -137,7 +138,7 @@ const tiersEquitation = [
     name: 'Formule PADDOCK',
     id: 'tier-paddock',
     price: '€8',
-    description: 'The essentials to provide your best work for clients.',
+    description: 'Idéal pour un souvenir unique de cette journée',
     features: ['1 photo en format numérique', '1 impression 10x15cm'],
     featured: false,
   },
@@ -145,7 +146,7 @@ const tiersEquitation = [
     name: 'Formule PODIUM',
     id: 'tier-podium',
     price: '€15',
-    description: 'A plan that scales with your rapidly growing business.',
+    description: ' Pour voir les choses en grand !',
     features: [
       '3 photos en format numérique'
     ],
@@ -155,7 +156,7 @@ const tiersEquitation = [
     name: 'Formule OXER',
     id: 'tier-oxer',
     price: '€12',
-    description: 'A plan that scales with your rapidly growing business.',
+    description: 'Revivez deux moments forts, et imprimez celui qui vous fait vibrer le plus',
     features: [
       '2 photos en format numérique',
       '1 impression 10x15cm',
@@ -167,7 +168,7 @@ const tiersEquitation = [
     name: 'Formule GRAND PRIX',
     id: 'tier-grandprix',
     price: '€16',
-    description: 'A plan that scales with your rapidly growing business.',
+    description: 'Pour les indécis',
     features: [
       '1 photo en format numérique',
       '1 impression A4'
@@ -178,7 +179,7 @@ const tiersEquitation = [
     name: 'Formule TOUR D\'HONNEUR',
     id: 'tier-tourdhonneur',
     price: '€35',
-    description: 'A plan that scales with your rapidly growing business.',
+    description: 'Pour les grands collectionneurs',
     features: [
       'toutes les photos du tour en format numérique',
       '1 impression 10x15cm'
