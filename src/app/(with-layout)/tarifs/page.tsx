@@ -44,7 +44,7 @@ export default function Tarifs() {
       {selectedCategory === 'equitation' && (
         <>
           <Container
-            className='sm:pt-10'
+            className='sm:pt-10 pt-10'
           >
             <span className="block text-5xl font-display font-semibold text-neutral-950">
               Tarifs Equitation
@@ -60,7 +60,7 @@ export default function Tarifs() {
         <>
           <FadeIn>
             <Container
-              className='sm:pt-10'
+              className='sm:pt-10 pt-10'
             >
               <span className="block text-5xl font-display font-semibold text-neutral-950">
                 Tarifs Shooting
