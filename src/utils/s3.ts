@@ -5,7 +5,7 @@ export const s3Client = new Minio.Client({
   port: process.env.S3_PORT ? Number(process.env.S3_PORT) : undefined,
   accessKey: process.env.S3_ACCESS_KEY,
   secretKey: process.env.S3_SECRET_KEY,
-  useSSL: false,
+  useSSL: true,
 })
 
 export async function listBucketObjects(bucketName: string): Promise<{
@@ -16,6 +16,7 @@ export async function listBucketObjects(bucketName: string): Promise<{
 }[]> {
   const objects: any = []
   const stream = s3Client.listObjectsV2(bucketName, '', true)
+
   return new Promise((resolve, reject) => {
     stream.on('data', (obj) => {
       objects.push(obj)
