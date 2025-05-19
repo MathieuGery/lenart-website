@@ -3,6 +3,8 @@ import { listBucketObjects, createPresignedUrlToDownload } from '@/utils/s3'
 import { Container } from '@/components/Container'
 import { ShopGallery } from './ShopGallery'
 
+export const revalidate = 50 * 60 // Revalidation de la page toutes les 60 secondes
+
 export default async function Shop() {
   // Récupérer tous les objets du bucket 'images' - reste côté serveur
   const objects = await listBucketObjects('images')
@@ -31,7 +33,7 @@ export default async function Shop() {
         title="Notre collection"
       >
         <p>
-          Découvrez notre sélection de photos disponibles à l'achat. Chaque image est unique et peut être téléchargée en haute résolution après achat.
+          Parcourez la galerie et sélectionnez vos clichés préférés en les ajoutant au panier. Les images présentées ici sont en qualité réduite pour un affichage web optimal. Les fichiers que vous recevrez après votre commande seront en haute définition, sans filigrane, et soigneusement retouchés.
         </p>
       </PageIntro>
 
