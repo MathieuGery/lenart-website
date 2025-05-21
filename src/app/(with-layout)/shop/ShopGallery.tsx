@@ -49,6 +49,72 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
   const touchEndX = useRef<number | null>(null)
   const selectedImage = selectedImageIndex !== null ? images[selectedImageIndex] : null
 
+  // Fonctions de navigation
+  const goToNextImage = useCallback(() => {
+    if (selectedImageIndex === null) return
+    setSelectedImageIndex((selectedImageIndex + 1) % images.length)
+  }, [selectedImageIndex, images.length])
+
+  const goToPrevImage = useCallback(() => {
+    if (selectedImageIndex === null) return
+    setSelectedImageIndex((selectedImageIndex - 1 + images.length) % images.length)
+  }, [selectedImageIndex, images.length])
+
+  // Gestionnaire de touches pour la navigation au clavier
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (selectedImageIndex === null) return
+
+      switch (e.key) {
+        case 'ArrowRight':
+          goToNextImage()
+          break
+        case 'ArrowLeft':
+          goToPrevImage()
+          break
+        case 'Escape':
+          setSelectedImageIndex(null)
+          break
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedImageIndex, goToNextImage, goToPrevImage])
+
+  // Gestionnaires pour le swipe sur mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX
+  }
+
+  // Modification de la fonction handleTouchEnd pour corriger le sens du glissement
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return
+
+    // Calculer la distance horizontale du swipe
+    const distance = touchStartX.current - touchEndX.current
+    const minSwipeDistance = 50 // Distance minimale pour considérer comme un swipe
+
+    if (Math.abs(distance) > minSwipeDistance) {
+      // Swipe de droite à gauche (distance positive) => image suivante
+      if (distance > 0) {
+        goToNextImage()
+      }
+      // Swipe de gauche à droite (distance négative) => image précédente
+      else {
+        goToPrevImage()
+      }
+    }
+
+    // Réinitialiser les valeurs
+    touchStartX.current = null
+    touchEndX.current = null
+  }
+
   // Récupérer les formules depuis Supabase
   useEffect(() => {
     async function fetchPricingFormules() {
@@ -60,7 +126,7 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
           .select('*')
           .eq('is_active', true)
           .order('base_price', { ascending: true });
-        
+
         if (formulesError) throw formulesError;
 
         // Récupérer toutes les caractéristiques des formules
@@ -68,23 +134,23 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
           .from('pricing_features')
           .select('*')
           .order('display_order', { ascending: true });
-          
+
         if (featuresError) throw featuresError;
-        
+
         // Associer les caractéristiques à leurs formules respectives
         const enrichedFormules = formulesData.map(formule => {
           const formuleFeatures = featuresData
             .filter(feature => feature.formule_id === formule.id)
             .map(feature => feature.feature_text);
-            
+
           return {
             ...formule,
             features: formuleFeatures
           };
         });
-        
+
         setFormules(enrichedFormules);
-        
+
         // Sélectionner automatiquement la formule la plus adaptée au nombre de photos
         if (cartItems.length > 0 && enrichedFormules.length > 0) {
           const bestFormule = findBestFormule(enrichedFormules, cartItems.length);
@@ -96,7 +162,7 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
         setIsLoadingPricing(false)
       }
     }
-    
+
     fetchPricingFormules();
   }, [cartItems.length]);
 
@@ -107,32 +173,32 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
     if (tourFormule) {
       return tourFormule;
     }
-    
+
     // Sinon, trouver la formule qui correspond le mieux au nombre de photos
     for (const formule of availableFormules.filter(f => !f.is_featured)) {
       if (photoCount === formule.digital_photos_count) {
         return formule;
       }
     }
-    
+
     // Si pas de correspondance exacte, chercher la plus proche inférieure avec supplément possible
     const formulesWithExtra = availableFormules.filter(f => f.extra_photo_price !== null);
     if (formulesWithExtra.length > 0) {
-      const bestMatch = formulesWithExtra.sort((a, b) => 
+      const bestMatch = formulesWithExtra.sort((a, b) =>
         (photoCount - a.digital_photos_count) - (photoCount - b.digital_photos_count)
       )[0];
-      
+
       if (photoCount > bestMatch.digital_photos_count) {
         return bestMatch;
       }
     }
-    
+
     // Par défaut, retourner la formule la moins chère qui peut accommoder le nombre de photos
-    const possibleFormules = availableFormules.filter(f => 
+    const possibleFormules = availableFormules.filter(f =>
       f.digital_photos_count >= photoCount && !f.is_featured
     );
-    
-    return possibleFormules.length > 0 
+
+    return possibleFormules.length > 0
       ? possibleFormules.sort((a, b) => a.base_price - b.base_price)[0]
       : availableFormules.find(f => !f.is_featured) || null;
   };
@@ -144,30 +210,30 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
       setExtraPhotosPrice(0);
       return;
     }
-    
+
     const photoCount = cartItems.length;
-    
+
     // Formule tour complet - prix fixe
     if (selectedFormule.is_tour_complete) {
       setTotalPrice(selectedFormule.base_price);
       setExtraPhotosPrice(0);
       return;
     }
-    
+
     // Formule normale avec photos supplémentaires
     let price = selectedFormule.base_price;
     let extraPrice = 0;
-    
+
     // Calculer le prix des photos supplémentaires si applicable
     if (photoCount > selectedFormule.digital_photos_count && selectedFormule.extra_photo_price) {
       const extraPhotos = photoCount - selectedFormule.digital_photos_count;
       extraPrice = extraPhotos * selectedFormule.extra_photo_price;
       price += extraPrice;
     }
-    
+
     setTotalPrice(price);
     setExtraPhotosPrice(extraPrice);
-    
+
   }, [selectedFormule, cartItems, isLoadingPricing]);
 
   // Fonctions existantes modifiées
@@ -199,7 +265,7 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
   // Fonction pour gérer le checkout
   const handleCheckout = () => {
     if (!selectedFormule) return;
-    
+
     // Sauvegarde du panier, du prix et de la formule sélectionnée
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
     localStorage.setItem('shop-cart-total-price', totalPrice.toString());
@@ -207,11 +273,11 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
       id: selectedFormule.id,
       name: selectedFormule.name,
       base_price: selectedFormule.base_price,
-      extra_photos: cartItems.length > selectedFormule.digital_photos_count ? 
+      extra_photos: cartItems.length > selectedFormule.digital_photos_count ?
         cartItems.length - selectedFormule.digital_photos_count : 0,
       extra_photos_price: extraPhotosPrice
     }));
-    
+
     router.push('/shop/checkout');
   };
 
@@ -249,7 +315,7 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
               </div>
             ))}
           </div>
-          
+
           {/* Sélection de formule */}
           {!isLoadingPricing && formules.length > 0 && (
             <div className="mb-4">
@@ -269,12 +335,12 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
                 {formules
                   .filter(f => !f.is_featured)
                   .map(formule => (
-                    <option 
-                      key={formule.id} 
+                    <option
+                      key={formule.id}
                       value={formule.id}
-                      disabled={formule.is_tour_complete === false && 
-                              cartItems.length > formule.digital_photos_count && 
-                              formule.extra_photo_price === null}
+                      disabled={formule.is_tour_complete === false &&
+                        cartItems.length > formule.digital_photos_count &&
+                        formule.extra_photo_price === null}
                     >
                       {formule.name} - {formule.base_price.toFixed(2)}€
                     </option>
@@ -282,13 +348,13 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
               </select>
             </div>
           )}
-          
+
           {/* Formule sélectionnée et détails */}
           {selectedFormule && (
             <div className="mb-3 bg-gray-50 p-3 rounded-md">
               <h4 className="font-medium text-sm">{selectedFormule.name}</h4>
               <p className="text-xs text-gray-600 mb-2">{selectedFormule.description}</p>
-              
+
               <ul className="text-xs space-y-1 mb-3">
                 {selectedFormule.features.map((feature, idx) => (
                   <li key={idx} className="flex items-start">
@@ -297,14 +363,14 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
                   </li>
                 ))}
               </ul>
-              
+
               {/* Affichage du détail des prix */}
               <div className="border-t border-gray-200 pt-2 mt-2">
                 <div className="flex justify-between text-xs mb-1">
                   <span>Prix de base:</span>
                   <span>{selectedFormule.base_price.toFixed(2)}€</span>
                 </div>
-                
+
                 {/* Photos supplémentaires si applicable */}
                 {extraPhotosPrice > 0 && selectedFormule.extra_photo_price && (
                   <div className="flex justify-between text-xs mb-1">
@@ -314,7 +380,7 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
                     <span>{extraPhotosPrice.toFixed(2)}€</span>
                   </div>
                 )}
-                
+
                 <div className="flex justify-between font-medium text-sm text-teal-700 mt-1">
                   <span>Total:</span>
                   <span>{totalPrice.toFixed(2)}€</span>
@@ -322,7 +388,7 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
               </div>
             </div>
           )}
-          
+
           <button
             className="bg-teal-600 text-white w-full py-2 rounded hover:bg-teal-700 transition-colors disabled:opacity-50"
             onClick={handleCheckout}
@@ -422,8 +488,8 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
             {/* Ajout du bouton dans la modal pour ajouter l'image au panier - optimisé pour mobile */}
             <button
               className={`absolute md:right-0 md:top-0 md:-mt-12 md:-mr-16 right-4 bottom-4 w-12 h-12 flex items-center justify-center rounded-full transition-colors shadow-lg ${isInCart(selectedImage)
-                  ? 'bg-teal-600 text-white'
-                  : 'bg-white/90 text-gray-700 hover:bg-white'
+                ? 'bg-teal-600 text-white'
+                : 'bg-white/90 text-gray-700 hover:bg-white'
                 }`}
               onClick={(e) => {
                 e.stopPropagation()
