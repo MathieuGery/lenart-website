@@ -126,8 +126,10 @@ export default function OrderConfirmationContent() {
   // Déterminer le statut de la commande pour l'affichage
   const getStatusBadge = () => {
     switch (order.status) {
+      case 'waiting-for-payment':
+        return <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-medium">En attente de paiement</span>
       case 'pending':
-        return <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">En attente</span>
+        return <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">En cours de traitement</span>
       case 'canceled':
         return <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-medium">Annulée</span>
       case 'completed':

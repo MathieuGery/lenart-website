@@ -23,12 +23,22 @@ type FormData = {
   phone: string
 }
 
+type FormuleDetails = {
+  id: string
+  name: string
+  base_price: number
+  extra_photos: number
+  extra_photos_price: number
+}
+
 // Clé de stockage localStorage
 const CART_STORAGE_KEY = 'shop-cart-items'
 
 // Composant client pour afficher les éléments du panier
 export default function CheckoutItems() {
   const [cartItems, setCartItems] = useState<ShopImage[]>([])
+  const [formuleDetails, setFormuleDetails] = useState<FormuleDetails | null>(null)
+  const [totalPrice, setTotalPrice] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [orderSuccess, setOrderSuccess] = useState(false)
@@ -86,14 +96,14 @@ export default function CheckoutItems() {
 
   // Traitement de la commande
   const handleSubmitOrder = async () => {
-    if (!isFormValid) return
+    if (!isFormValid || !formuleDetails) return
 
     setIsSubmitting(true)
     setOrderError('')
 
     try {
       // Appel de l'action serveur
-      const result = await saveOrder(formData, cartItems)
+      const result = await saveOrder(formData, cartItems, formuleDetails)
 
       if (result.success) {
         setOrderSuccess(true)
@@ -114,6 +124,9 @@ export default function CheckoutItems() {
   // Récupération des éléments du panier, suppression d'un élément, etc...
   useEffect(() => {
     const savedCartItems = localStorage.getItem(CART_STORAGE_KEY)
+    const savedFormule = localStorage.getItem('shop-cart-formule')
+    const savedTotalPrice = localStorage.getItem('shop-cart-total-price')
+
     if (savedCartItems) {
       try {
         const parsedItems = JSON.parse(savedCartItems)
@@ -122,6 +135,20 @@ export default function CheckoutItems() {
         console.error('Erreur lors de la récupération du panier:', error)
       }
     }
+
+    if (savedFormule) {
+      try {
+        const parsedFormule = JSON.parse(savedFormule)
+        setFormuleDetails(parsedFormule)
+      } catch (error) {
+        console.error('Erreur lors de la récupération de la formule:', error)
+      }
+    }
+
+    if (savedTotalPrice) {
+      setTotalPrice(parseFloat(savedTotalPrice))
+    }
+
     setIsLoading(false)
   }, [])
 
@@ -287,6 +314,47 @@ export default function CheckoutItems() {
               {formErrors.phone && (
                 <p className="mt-1 text-sm text-red-600">{formErrors.phone}</p>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* Récapitulatif de commande modifié */}
+        <div className="mt-8 bg-gray-50 p-6 rounded-lg">
+          <h3 className="text-lg font-medium mb-4">Récapitulatif de votre commande</h3>
+
+          {formuleDetails && (
+            <div className="mb-4 pb-4 border-b">
+              <h4 className="font-medium">{formuleDetails.name}</h4>
+              <div className="mt-2 space-y-1 text-sm">
+                <p className="flex justify-between">
+                  <span>Prix de base:</span>
+                  <span>{formuleDetails.base_price.toFixed(2)}€</span>
+                </p>
+
+                {formuleDetails.extra_photos > 0 && (
+                  <p className="flex justify-between">
+                    <span>{formuleDetails.extra_photos} photo(s) supplémentaire(s):</span>
+                    <span>{formuleDetails.extra_photos_price.toFixed(2)}€</span>
+                  </p>
+                )}
+
+                <p className="flex justify-between font-medium text-base">
+                  <span>Total:</span>
+                  <span>{totalPrice.toFixed(2)}€</span>
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Liste des photos sélectionnées */}
+          <div>
+            <h4 className="font-medium mb-2">Photos sélectionnées ({cartItems.length})</h4>
+            <div className="grid grid-cols-2 gap-2">
+              {cartItems.map(item => (
+                <div key={item.name} className="text-sm truncate">
+                  {item.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ")}
+                </div>
+              ))}
             </div>
           </div>
         </div>

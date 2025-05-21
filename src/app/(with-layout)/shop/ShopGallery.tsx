@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { FadeIn, FadeInStagger } from '@/components/FadeIn'
 import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, ShoppingCartIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/utils/supabase'
 
 // Type d'image
 type ShopImage = {
@@ -13,45 +14,163 @@ type ShopImage = {
   lastModified: Date
 }
 
+// Type pour les formules de prix
+type PricingFormule = {
+  id: string
+  name: string
+  description: string
+  base_price: number
+  is_featured: boolean
+  digital_photos_count: number
+  print_details: string | null
+  extra_photo_price: number | null
+  is_tour_complete: boolean
+  features: string[]
+}
+
 // Clé de stockage localStorage
 const CART_STORAGE_KEY = 'shop-cart-items'
 
 export function ShopGallery({ images }: { images: ShopImage[] }) {
-  // États pour la navigation
+  // États existants
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
-  // État pour le panier
-  const [cartItems, setCartItems] = useState<ShopImage[]>([])
-  // Router pour la navigation
+  const [cartItems, setCartItems] = useState<ShopImage[]>(localStorage.getItem(CART_STORAGE_KEY) ? JSON.parse(localStorage.getItem(CART_STORAGE_KEY)!) : [])
   const router = useRouter()
 
-  // Références pour le swipe
+  // Nouveaux états pour le pricing
+  const [formules, setFormules] = useState<PricingFormule[]>([])
+  const [selectedFormule, setSelectedFormule] = useState<PricingFormule | null>(null)
+  const [totalPrice, setTotalPrice] = useState<number>(0)
+  const [extraPhotosPrice, setExtraPhotosPrice] = useState<number>(0)
+  const [isLoadingPricing, setIsLoadingPricing] = useState(true)
+
+  // Références et autres variables existantes
   const touchStartX = useRef<number | null>(null)
   const touchEndX = useRef<number | null>(null)
-
-  // Image sélectionnée calculée à partir de l'index
   const selectedImage = selectedImageIndex !== null ? images[selectedImageIndex] : null
 
-  // Charger les éléments du panier depuis localStorage au chargement du composant
+  // Récupérer les formules depuis Supabase
   useEffect(() => {
-    const savedCartItems = localStorage.getItem(CART_STORAGE_KEY)
-    if (savedCartItems) {
+    async function fetchPricingFormules() {
+      setIsLoadingPricing(true)
       try {
-        const parsedItems = JSON.parse(savedCartItems)
-        setCartItems(parsedItems)
+        // Récupérer toutes les formules
+        const { data: formulesData, error: formulesError } = await supabase
+          .from('pricing_formules')
+          .select('*')
+          .eq('is_active', true)
+          .order('base_price', { ascending: true });
+        
+        if (formulesError) throw formulesError;
+
+        // Récupérer toutes les caractéristiques des formules
+        const { data: featuresData, error: featuresError } = await supabase
+          .from('pricing_features')
+          .select('*')
+          .order('display_order', { ascending: true });
+          
+        if (featuresError) throw featuresError;
+        
+        // Associer les caractéristiques à leurs formules respectives
+        const enrichedFormules = formulesData.map(formule => {
+          const formuleFeatures = featuresData
+            .filter(feature => feature.formule_id === formule.id)
+            .map(feature => feature.feature_text);
+            
+          return {
+            ...formule,
+            features: formuleFeatures
+          };
+        });
+        
+        setFormules(enrichedFormules);
+        
+        // Sélectionner automatiquement la formule la plus adaptée au nombre de photos
+        if (cartItems.length > 0 && enrichedFormules.length > 0) {
+          const bestFormule = findBestFormule(enrichedFormules, cartItems.length);
+          setSelectedFormule(bestFormule);
+        }
       } catch (error) {
-        console.error('Erreur lors de la récupération du panier:', error)
-        // En cas d'erreur, on réinitialise le localStorage
-        localStorage.removeItem(CART_STORAGE_KEY)
+        console.error('Erreur lors du chargement des formules:', error)
+      } finally {
+        setIsLoadingPricing(false)
       }
     }
-  }, [])
+    
+    fetchPricingFormules();
+  }, [cartItems.length]);
 
-  // Sauvegarder les éléments du panier dans localStorage à chaque modification
+  // Identifier la meilleure formule en fonction du nombre de photos
+  const findBestFormule = (availableFormules: PricingFormule[], photoCount: number) => {
+    // Si la collection est complète, utiliser la formule TOUR D'HONNEUR
+    const tourFormule = availableFormules.find(f => f.is_tour_complete);
+    if (tourFormule) {
+      return tourFormule;
+    }
+    
+    // Sinon, trouver la formule qui correspond le mieux au nombre de photos
+    for (const formule of availableFormules.filter(f => !f.is_featured)) {
+      if (photoCount === formule.digital_photos_count) {
+        return formule;
+      }
+    }
+    
+    // Si pas de correspondance exacte, chercher la plus proche inférieure avec supplément possible
+    const formulesWithExtra = availableFormules.filter(f => f.extra_photo_price !== null);
+    if (formulesWithExtra.length > 0) {
+      const bestMatch = formulesWithExtra.sort((a, b) => 
+        (photoCount - a.digital_photos_count) - (photoCount - b.digital_photos_count)
+      )[0];
+      
+      if (photoCount > bestMatch.digital_photos_count) {
+        return bestMatch;
+      }
+    }
+    
+    // Par défaut, retourner la formule la moins chère qui peut accommoder le nombre de photos
+    const possibleFormules = availableFormules.filter(f => 
+      f.digital_photos_count >= photoCount && !f.is_featured
+    );
+    
+    return possibleFormules.length > 0 
+      ? possibleFormules.sort((a, b) => a.base_price - b.base_price)[0]
+      : availableFormules.find(f => !f.is_featured) || null;
+  };
+
+  // Calculer le prix total lorsque le panier ou la formule sélectionnée change
   useEffect(() => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems))
-  }, [cartItems])
+    if (!selectedFormule || isLoadingPricing) {
+      setTotalPrice(0);
+      setExtraPhotosPrice(0);
+      return;
+    }
+    
+    const photoCount = cartItems.length;
+    
+    // Formule tour complet - prix fixe
+    if (selectedFormule.is_tour_complete) {
+      setTotalPrice(selectedFormule.base_price);
+      setExtraPhotosPrice(0);
+      return;
+    }
+    
+    // Formule normale avec photos supplémentaires
+    let price = selectedFormule.base_price;
+    let extraPrice = 0;
+    
+    // Calculer le prix des photos supplémentaires si applicable
+    if (photoCount > selectedFormule.digital_photos_count && selectedFormule.extra_photo_price) {
+      const extraPhotos = photoCount - selectedFormule.digital_photos_count;
+      extraPrice = extraPhotos * selectedFormule.extra_photo_price;
+      price += extraPrice;
+    }
+    
+    setTotalPrice(price);
+    setExtraPhotosPrice(extraPrice);
+    
+  }, [selectedFormule, cartItems, isLoadingPricing]);
 
-  // Fonctions pour le panier
+  // Fonctions existantes modifiées
   const isInCart = useCallback((image: ShopImage) => {
     return cartItems.some(item => item.name === image.name)
   }, [cartItems])
@@ -72,84 +191,35 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
     })
   }, [isInCart])
 
+  // Fonction pour changer de formule
+  const handleFormuleChange = (formule: PricingFormule) => {
+    setSelectedFormule(formule);
+  };
+
   // Fonction pour gérer le checkout
   const handleCheckout = () => {
-    // Assurez-vous que le panier est bien sauvegardé avant de rediriger
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems))
-    router.push('/shop/checkout')
-  }
-
-  // Fonctions de navigation
-  const goToNextImage = useCallback(() => {
-    if (selectedImageIndex === null) return
-    setSelectedImageIndex((selectedImageIndex + 1) % images.length)
-  }, [selectedImageIndex, images.length])
-
-  const goToPrevImage = useCallback(() => {
-    if (selectedImageIndex === null) return
-    setSelectedImageIndex((selectedImageIndex - 1 + images.length) % images.length)
-  }, [selectedImageIndex, images.length])
-
-  // Gestionnaire de touches pour la navigation au clavier
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (selectedImageIndex === null) return
-
-      switch (e.key) {
-        case 'ArrowRight':
-          goToNextImage()
-          break
-        case 'ArrowLeft':
-          goToPrevImage()
-          break
-        case 'Escape':
-          setSelectedImageIndex(null)
-          break
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedImageIndex, goToNextImage, goToPrevImage])
-
-  // Gestionnaires pour le swipe sur mobile
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
-  }
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX
-  }
-
-  // Modification de la fonction handleTouchEnd pour corriger le sens du glissement
-  const handleTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return
-
-    // Calculer la distance horizontale du swipe
-    const distance = touchStartX.current - touchEndX.current
-    const minSwipeDistance = 50 // Distance minimale pour considérer comme un swipe
-
-    if (Math.abs(distance) > minSwipeDistance) {
-      // Swipe de droite à gauche (distance positive) => image suivante
-      if (distance > 0) {
-        goToNextImage()
-      }
-      // Swipe de gauche à droite (distance négative) => image précédente
-      else {
-        goToPrevImage()
-      }
-    }
-
-    // Réinitialiser les valeurs
-    touchStartX.current = null
-    touchEndX.current = null
-  }
+    if (!selectedFormule) return;
+    
+    // Sauvegarde du panier, du prix et de la formule sélectionnée
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    localStorage.setItem('shop-cart-total-price', totalPrice.toString());
+    localStorage.setItem('shop-cart-formule', JSON.stringify({
+      id: selectedFormule.id,
+      name: selectedFormule.name,
+      base_price: selectedFormule.base_price,
+      extra_photos: cartItems.length > selectedFormule.digital_photos_count ? 
+        cartItems.length - selectedFormule.digital_photos_count : 0,
+      extra_photos_price: extraPhotosPrice
+    }));
+    
+    router.push('/shop/checkout');
+  };
 
   return (
     <>
-      {/* Panier flottant */}
+      {/* Panier flottant modifié pour afficher les formules et prix */}
       {cartItems.length > 0 && (
-        <div className="fixed bottom-6 right-6 z-40 bg-white rounded-lg shadow-lg p-4 max-w-xs w-full">
+        <div className="fixed bottom-6 right-6 z-40 bg-white rounded-lg shadow-lg p-4 max-w-sm w-full">
           <div className="flex justify-between items-center mb-3">
             <div className="flex items-center">
               <ShoppingCartIcon className="h-5 w-5 text-teal-600 mr-2" />
@@ -162,7 +232,9 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
               Vider
             </button>
           </div>
-          <div className="max-h-40 overflow-y-auto mb-3">
+
+          {/* Sélection des photos */}
+          <div className="max-h-32 overflow-y-auto mb-3 border-b pb-3">
             {cartItems.map(item => (
               <div key={item.name} className="flex items-center justify-between py-1">
                 <span className="text-sm truncate" style={{ maxWidth: '180px' }}>
@@ -177,11 +249,86 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
               </div>
             ))}
           </div>
+          
+          {/* Sélection de formule */}
+          {!isLoadingPricing && formules.length > 0 && (
+            <div className="mb-4">
+              <label htmlFor="formule-select" className="block text-sm font-medium text-gray-700 mb-1">
+                Choisissez votre formule :
+              </label>
+              <select
+                id="formule-select"
+                value={selectedFormule?.id || ''}
+                onChange={(e) => {
+                  const selected = formules.find(f => f.id === e.target.value);
+                  if (selected) handleFormuleChange(selected);
+                }}
+                className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-teal-500 focus:border-teal-500"
+              >
+                <option value="" disabled>Sélectionnez une formule</option>
+                {formules
+                  .filter(f => !f.is_featured)
+                  .map(formule => (
+                    <option 
+                      key={formule.id} 
+                      value={formule.id}
+                      disabled={formule.is_tour_complete === false && 
+                              cartItems.length > formule.digital_photos_count && 
+                              formule.extra_photo_price === null}
+                    >
+                      {formule.name} - {formule.base_price.toFixed(2)}€
+                    </option>
+                  ))}
+              </select>
+            </div>
+          )}
+          
+          {/* Formule sélectionnée et détails */}
+          {selectedFormule && (
+            <div className="mb-3 bg-gray-50 p-3 rounded-md">
+              <h4 className="font-medium text-sm">{selectedFormule.name}</h4>
+              <p className="text-xs text-gray-600 mb-2">{selectedFormule.description}</p>
+              
+              <ul className="text-xs space-y-1 mb-3">
+                {selectedFormule.features.map((feature, idx) => (
+                  <li key={idx} className="flex items-start">
+                    <CheckCircleIcon className="h-4 w-4 text-teal-600 mr-1 flex-shrink-0 mt-0.5" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              
+              {/* Affichage du détail des prix */}
+              <div className="border-t border-gray-200 pt-2 mt-2">
+                <div className="flex justify-between text-xs mb-1">
+                  <span>Prix de base:</span>
+                  <span>{selectedFormule.base_price.toFixed(2)}€</span>
+                </div>
+                
+                {/* Photos supplémentaires si applicable */}
+                {extraPhotosPrice > 0 && selectedFormule.extra_photo_price && (
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>
+                      {cartItems.length - selectedFormule.digital_photos_count} photo(s) supplémentaire(s):
+                    </span>
+                    <span>{extraPhotosPrice.toFixed(2)}€</span>
+                  </div>
+                )}
+                
+                <div className="flex justify-between font-medium text-sm text-teal-700 mt-1">
+                  <span>Total:</span>
+                  <span>{totalPrice.toFixed(2)}€</span>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <button
-            className="bg-teal-600 text-white w-full py-2 rounded hover:bg-teal-700 transition-colors"
+            className="bg-teal-600 text-white w-full py-2 rounded hover:bg-teal-700 transition-colors disabled:opacity-50"
             onClick={handleCheckout}
+            disabled={isLoadingPricing || !selectedFormule}
           >
-            Commander la sélection
+            {isLoadingPricing ? 'Chargement...' : `Commander pour ${totalPrice.toFixed(2)}€`}
           </button>
         </div>
       )}

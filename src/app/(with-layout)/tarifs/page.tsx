@@ -88,6 +88,8 @@ const tiersShooting = [
     description: 'Forfait idéal pour un souvenir unique de cette journée',
     features: ['30 min de prises de vue', '5 photos'],
     featured: false,
+    href: '/contact',
+    cta: 'Je reserve ma séance !'
   },
   {
     name: 'Forfait 2',
@@ -96,6 +98,8 @@ const tiersShooting = [
     description: 'Forfait idéal pour un souvenir unique de cette journée',
     features: ['1h de prises de vue', '10 photos'],
     featured: false,
+    href: '/contact',
+    cta: 'Je reserve ma séance !'
   },
   {
     name: 'Forfait 3',
@@ -104,6 +108,8 @@ const tiersShooting = [
     description: 'Forfait idéal pour un souvenir unique de cette journée',
     features: ['1h30 de prises de vue', '20 photos'],
     featured: false,
+    href: '/contact',
+    cta: 'Je reserve ma séance !'
   },
   {
     name: 'Formule dressage',
@@ -112,6 +118,8 @@ const tiersShooting = [
     description: 'Forfait idéal pour un souvenir unique de cette journée',
     features: ['Suivi de la reprise sur 30 min', '15 photos'],
     featured: false,
+    href: '/contact',
+    cta: 'Je reserve ma séance !'
   },
   {
     name: 'Formule obstacles',
@@ -120,6 +128,8 @@ const tiersShooting = [
     description: 'Forfait idéal pour un souvenir unique de cette journée',
     features: ['Suivi de la reprise sur 1h', '25 photos'],
     featured: false,
+    href: '/contact',
+    cta: 'Je reserve ma séance !'
   },
   {
     name: 'Personnalisé',

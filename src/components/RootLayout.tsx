@@ -29,8 +29,8 @@ const RootLayoutContext = createContext<{
 function XIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
-      <path d="m5.636 4.223 14.142 14.142-1.414 1.414L4.222 5.637z"/>
-      <path d="M4.222 18.363 18.364 4.22l1.414 1.414L5.636 19.777z"/>
+      <path d="m5.636 4.223 14.142 14.142-1.414 1.414L4.222 5.637z" />
+      <path d="M4.222 18.363 18.364 4.22l1.414 1.414L5.636 19.777z" />
     </svg>
   )
 }
@@ -38,19 +38,19 @@ function XIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
 function MenuIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
-      <path d="M2 6h20v2H2zM2 16h20v2H2z"/>
+      <path d="M2 6h20v2H2zM2 16h20v2H2z" />
     </svg>
   )
 }
 
 function Header({
-                  panelId,
-                  icon: Icon,
-                  expanded,
-                  onToggle,
-                  toggleRef,
-                  invert = false
-                }: {
+  panelId,
+  icon: Icon,
+  expanded,
+  onToggle,
+  toggleRef,
+  invert = false
+}: {
   panelId: string
   icon: React.ComponentType<{ className?: string }>
   expanded: boolean
@@ -58,7 +58,7 @@ function Header({
   toggleRef: React.RefObject<HTMLButtonElement>
   invert?: boolean
 }) {
-  let {logoHovered, setLogoHovered} = useContext(RootLayoutContext)!
+  let { logoHovered, setLogoHovered } = useContext(RootLayoutContext)!
 
   return (
     <Container>
@@ -111,7 +111,7 @@ function Header({
   )
 }
 
-function NavigationRow({children}: { children: React.ReactNode }) {
+function NavigationRow({ children }: { children: React.ReactNode }) {
   return (
     <div className="even:mt-px sm:bg-neutral-950">
       <Container>
@@ -122,9 +122,9 @@ function NavigationRow({children}: { children: React.ReactNode }) {
 }
 
 function NavigationItem({
-                          href,
-                          children
-                        }: {
+  href,
+  children
+}: {
   href: string
   children: React.ReactNode
 }) {
@@ -135,7 +135,7 @@ function NavigationItem({
     >
       {children}
       <span
-        className="absolute inset-y-0 -z-10 w-screen bg-neutral-900 opacity-0 transition group-odd:right-0 group-even:left-0 group-hover:opacity-100"/>
+        className="absolute inset-y-0 -z-10 w-screen bg-neutral-900 opacity-0 transition group-odd:right-0 group-even:left-0 group-hover:opacity-100" />
     </Link>
   )
 }
@@ -144,7 +144,7 @@ function Navigation() {
   return (
     <nav className="mt-px font-display text-5xl font-medium tracking-tight text-white">
       <NavigationRow>
-        <NavigationItem href="/work">Galerie</NavigationItem>
+        <NavigationItem href="/gallery-show">Galerie</NavigationItem>
         <NavigationItem href="/about">A propos</NavigationItem>
       </NavigationRow>
       <NavigationRow>
@@ -155,7 +155,7 @@ function Navigation() {
   )
 }
 
-function RootLayoutInner({children}: { children: React.ReactNode }) {
+function RootLayoutInner({ children }: { children: React.ReactNode }) {
   let panelId = useId()
   let [expanded, setExpanded] = useState(false)
   let openRef = useRef<React.ElementRef<'button'>>(null)
@@ -181,7 +181,7 @@ function RootLayoutInner({children}: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <MotionConfig transition={shouldReduceMotion ? {duration: 0} : undefined}>
+    <MotionConfig transition={shouldReduceMotion ? { duration: 0 } : undefined}>
       <header>
         <div
           className="absolute left-0 right-0 top-2 z-40 pt-14"
@@ -197,7 +197,7 @@ function RootLayoutInner({children}: { children: React.ReactNode }) {
             onToggle={() => {
               setExpanded((expanded) => !expanded)
               window.setTimeout(
-                () => closeRef.current?.focus({preventScroll: true})
+                () => closeRef.current?.focus({ preventScroll: true })
               )
             }}
           />
@@ -206,7 +206,7 @@ function RootLayoutInner({children}: { children: React.ReactNode }) {
         <motion.div
           layout
           id={panelId}
-          style={{height: expanded ? 'auto' : '0.5rem'}}
+          style={{ height: expanded ? 'auto' : '0.5rem' }}
           className="relative z-50 overflow-hidden bg-neutral-950 pt-2"
           aria-hidden={expanded ? undefined : 'true'}
           // @ts-ignore (https://github.com/facebook/react/issues/17157)
@@ -223,12 +223,12 @@ function RootLayoutInner({children}: { children: React.ReactNode }) {
                 onToggle={() => {
                   setExpanded((expanded) => !expanded)
                   window.setTimeout(
-                    () => openRef.current?.focus({preventScroll: true})
+                    () => openRef.current?.focus({ preventScroll: true })
                   )
                 }}
               />
             </div>
-            <Navigation/>
+            <Navigation />
             <div
               className="relative bg-neutral-950 before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-neutral-800">
               <Container>
@@ -246,7 +246,7 @@ function RootLayoutInner({children}: { children: React.ReactNode }) {
                     <h2 className="font-display text-base font-semibold text-white">
                       Me suivre
                     </h2>
-                    <SocialMedia className="mt-6" invert/>
+                    <SocialMedia className="mt-6" invert />
                   </div>
                 </div>
               </Container>
@@ -257,7 +257,7 @@ function RootLayoutInner({children}: { children: React.ReactNode }) {
 
       <motion.div
         layout
-        style={{borderTopLeftRadius: 40, borderTopRightRadius: 40}}
+        style={{ borderTopLeftRadius: 40, borderTopRightRadius: 40 }}
         className="relative flex flex-auto overflow-hidden bg-white pt-14"
       >
         <motion.div
@@ -272,19 +272,19 @@ function RootLayoutInner({children}: { children: React.ReactNode }) {
 
           <main className="w-full flex-auto">{children}</main>
 
-          <Footer/>
+          <Footer />
         </motion.div>
       </motion.div>
     </MotionConfig>
   )
 }
 
-export function RootLayout({children}: { children: React.ReactNode }) {
+export function RootLayout({ children }: { children: React.ReactNode }) {
   let pathname = usePathname()
   let [logoHovered, setLogoHovered] = useState(false)
 
   return (
-    <RootLayoutContext.Provider value={{logoHovered, setLogoHovered}}>
+    <RootLayoutContext.Provider value={{ logoHovered, setLogoHovered }}>
       <RootLayoutInner key={pathname}>{children}</RootLayoutInner>
     </RootLayoutContext.Provider>
   )

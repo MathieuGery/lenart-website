@@ -10,9 +10,9 @@ const navigation = [
     title: 'Navigation',
     links: [
       { title: 'A propos', href: '/about' },
-      { title: 'Galerie', href: '/work' },
+      { title: 'Galerie', href: '/gallery-show' },
       { title: 'Tarifs', href: '/tarifs' },
-      { title: 'Contact', href: '/contact' },
+      { title: 'Contact', href: '/contact' }
     ],
   },
   {

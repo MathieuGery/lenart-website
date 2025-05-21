@@ -9,7 +9,7 @@ export default function OrderConfirmationPage() {
   return (
     <>
       <PageIntro
-        title="Commande confirmée"
+        title="Etat de votre commande"
         eyebrow="Merci pour votre achat"
       >
         <p>

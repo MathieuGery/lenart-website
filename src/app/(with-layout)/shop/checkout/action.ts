@@ -9,6 +9,14 @@ type FormData = {
   phone: string;
 };
 
+type FormuleDetails = {
+  id: string;
+  name: string;
+  base_price: number;
+  extra_photos: number;
+  extra_photos_price: number;
+};
+
 type ShopImage = {
   name: string;
   url: string;
@@ -53,12 +61,16 @@ export async function sendEmailConfirmation(email: string, orderNumber: string) 
   })
 }
 
-export async function saveOrder(formData: FormData, cartItems: ShopImage[]) {
+export async function saveOrder(formData: FormData, cartItems: ShopImage[], formuleDetails: FormuleDetails) {
   try {
     // Générer un numéro de commande unique
     const orderNumber = await generateOrderNumber();
 
-    await sendEmailConfirmation(formData.email, orderNumber)
+    // Calculer le prix total
+    const totalPrice = formuleDetails.base_price + formuleDetails.extra_photos_price;
+
+    // Envoyer email de confirmation
+    await sendEmailConfirmation(formData.email, orderNumber);
 
     // Créer une entrée dans la table des commandes
     const { data: order, error: orderError } = await supabase
@@ -68,9 +80,15 @@ export async function saveOrder(formData: FormData, cartItems: ShopImage[]) {
         last_name: formData.lastName,
         email: formData.email,
         phone: formData.phone,
-        status: 'pending',
+        status: 'waiting-for-payment',
         order_number: orderNumber,
-        created_at: new Date().toLocaleString('en-US', { timeZone: 'Europe/Paris' })
+        total_price: totalPrice,
+        formule_id: formuleDetails.id,
+        formule_name: formuleDetails.name,
+        base_price: formuleDetails.base_price,
+        extra_photos_count: formuleDetails.extra_photos,
+        extra_photos_price: formuleDetails.extra_photos_price,
+        created_at: new Date().toISOString()
       })
       .select('id, order_number')
       .single();
