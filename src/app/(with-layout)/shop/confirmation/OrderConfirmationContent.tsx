@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { FadeIn } from '@/components/FadeIn'
 import { Button } from '@/components/Button'
 import { cancelOrder, getOrderDetails } from './action'
@@ -26,7 +26,6 @@ type OrderDetails = {
 
 export default function OrderConfirmationContent() {
   const searchParams = useSearchParams()
-  const router = useRouter()
   const orderNumber = searchParams.get('orderNumber')
 
   const [order, setOrder] = useState<OrderDetails | null>(null)
@@ -88,11 +87,12 @@ export default function OrderConfirmationContent() {
 
       if (result.success) {
         setSuccess(result.message || 'Commande annulée avec succès')
-
-        // Redirection après un court délai
+        setShowConfirmation(false)
+        // Fermer la fenêtre de confirmation
+        // Recharger la page pour mettre à jour le statut de la commande
         setTimeout(() => {
-          router.push('/shop/checkout')
-        }, 2000)
+          window.location.reload()
+        }, 1500)
       } else {
         // Si l'erreur concerne l'email, l'afficher dans le champ d'email
         if (result.error?.toLowerCase().includes('email')) {
@@ -172,14 +172,14 @@ export default function OrderConfirmationContent() {
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500">Email</h3>
-                <p className="font-medium text-gray-900 mt-1">
-                    {order.email.replace(
-                    /(.{2})(.*)(@)(.*)(\..*)/, 
-                    (_, start, middle, at, domainName, tld) =>
-                      start + '*'.repeat(Math.min(middle.length, 5)) + at + 
-                      domainName.substring(0, 1) + '*'.repeat(Math.max(domainName.length - 1, 2)) + tld
-                    )}
-                </p>
+              <p className="font-medium text-gray-900 mt-1">
+                {order.email.replace(
+                  /(.{2})(.*)(@)(.*)(\..*)/,
+                  (_, start, middle, at, domainName, tld) =>
+                    start + '*'.repeat(Math.min(middle.length, 5)) + at +
+                    domainName.substring(0, 1) + '*'.repeat(Math.max(domainName.length - 1, 2)) + tld
+                )}
+              </p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500">Téléphone</h3>
@@ -233,7 +233,7 @@ export default function OrderConfirmationContent() {
             Retour à l'accueil
           </Button>
 
-          {order.status !== 'canceled' && (
+          {order.status === 'pending' && (
             <button
               onClick={() => setShowConfirmation(true)}
               disabled={isLoading || !!success}
