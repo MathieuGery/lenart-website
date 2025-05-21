@@ -3,7 +3,7 @@ import { listBucketObjects, createPresignedUrlToDownload } from '@/utils/s3'
 import { Container } from '@/components/Container'
 import { ShopGallery } from './ShopGallery'
 
-export const revalidate = 50 * 60 // Revalidation de la page toutes les 60 secondes
+export const revalidate = 0
 
 export default async function Shop() {
   // Récupérer tous les objets du bucket 'images' - reste côté serveur

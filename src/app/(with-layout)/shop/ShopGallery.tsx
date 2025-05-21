@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { FadeIn, FadeInStagger } from '@/components/FadeIn'
 import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, ShoppingCartIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { useRouter } from 'next/navigation'
 
 // Type d'image
 type ShopImage = {
@@ -12,11 +13,16 @@ type ShopImage = {
   lastModified: Date
 }
 
+// Clé de stockage localStorage
+const CART_STORAGE_KEY = 'shop-cart-items'
+
 export function ShopGallery({ images }: { images: ShopImage[] }) {
   // États pour la navigation
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
   // État pour le panier
   const [cartItems, setCartItems] = useState<ShopImage[]>([])
+  // Router pour la navigation
+  const router = useRouter()
 
   // Références pour le swipe
   const touchStartX = useRef<number | null>(null)
@@ -24,6 +30,26 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
 
   // Image sélectionnée calculée à partir de l'index
   const selectedImage = selectedImageIndex !== null ? images[selectedImageIndex] : null
+
+  // Charger les éléments du panier depuis localStorage au chargement du composant
+  useEffect(() => {
+    const savedCartItems = localStorage.getItem(CART_STORAGE_KEY)
+    if (savedCartItems) {
+      try {
+        const parsedItems = JSON.parse(savedCartItems)
+        setCartItems(parsedItems)
+      } catch (error) {
+        console.error('Erreur lors de la récupération du panier:', error)
+        // En cas d'erreur, on réinitialise le localStorage
+        localStorage.removeItem(CART_STORAGE_KEY)
+      }
+    }
+  }, [])
+
+  // Sauvegarder les éléments du panier dans localStorage à chaque modification
+  useEffect(() => {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems))
+  }, [cartItems])
 
   // Fonctions pour le panier
   const isInCart = useCallback((image: ShopImage) => {
@@ -45,6 +71,13 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
       return [...prev, image]
     })
   }, [isInCart])
+
+  // Fonction pour gérer le checkout
+  const handleCheckout = () => {
+    // Assurez-vous que le panier est bien sauvegardé avant de rediriger
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems))
+    router.push('/shop/checkout')
+  }
 
   // Fonctions de navigation
   const goToNextImage = useCallback(() => {
@@ -144,7 +177,10 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
               </div>
             ))}
           </div>
-          <button className="bg-teal-600 text-white w-full py-2 rounded hover:bg-teal-700 transition-colors">
+          <button
+            className="bg-teal-600 text-white w-full py-2 rounded hover:bg-teal-700 transition-colors"
+            onClick={handleCheckout}
+          >
             Commander la sélection
           </button>
         </div>
@@ -166,19 +202,20 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-0 transition-opacity duration-300 group-hover:bg-opacity-40" />
 
-                {/* Bouton pour ajouter au panier */}
+                {/* Bouton pour ajouter au panier - optimisé pour mobile */}
                 <button
-                  className={`absolute top-2 right-2 p-2 rounded-full transition-all ${isInCart(image)
+                  className={`absolute top-2 right-2 w-10 h-10 flex items-center justify-center rounded-full transition-all shadow-md
+                    ${isInCart(image)
                       ? 'bg-teal-600 text-white'
-                      : 'bg-white/80 text-gray-700 opacity-0 group-hover:opacity-100'
+                      : 'bg-white/90 text-gray-700 md:opacity-0 md:group-hover:opacity-100'
                     }`}
                   onClick={(e) => toggleCartItem(image, e)}
                   aria-label={isInCart(image) ? "Retirer du panier" : "Ajouter au panier"}
                 >
                   {isInCart(image) ? (
-                    <CheckCircleIcon className="h-6 w-6" />
+                    <CheckCircleIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                   ) : (
-                    <ShoppingCartIcon className="h-5 w-5" />
+                    <ShoppingCartIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                   )}
                 </button>
 
@@ -235,11 +272,11 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
               <ChevronRightIcon className="h-6 w-6 sm:h-8 sm:w-8" />
             </button>
 
-            {/* Ajout du bouton dans la modal pour ajouter l'image au panier */}
+            {/* Ajout du bouton dans la modal pour ajouter l'image au panier - optimisé pour mobile */}
             <button
-              className={`absolute right-0 top-0 -mt-12 -mr-16 p-3 rounded-full transition-colors ${isInCart(selectedImage)
+              className={`absolute md:right-0 md:top-0 md:-mt-12 md:-mr-16 right-4 bottom-4 w-12 h-12 flex items-center justify-center rounded-full transition-colors shadow-lg ${isInCart(selectedImage)
                   ? 'bg-teal-600 text-white'
-                  : 'bg-white/20 text-white hover:bg-white/40'
+                  : 'bg-white/90 text-gray-700 hover:bg-white'
                 }`}
               onClick={(e) => {
                 e.stopPropagation()
