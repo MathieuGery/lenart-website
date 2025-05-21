@@ -1,12 +1,107 @@
 'use server'
 
 import { supabase } from '@/utils/supabase'
+import { createPresignedUrlToDownload } from '@/utils/s3'
 import { revalidatePath } from 'next/cache'
 
 type CancelOrderResult = {
   success: boolean
   message?: string
   error?: string
+}
+
+type OrderDetails = {
+  id: string
+  order_number: string
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  status: string
+  created_at: string
+  items: Array<{
+    id: string
+    image_name: string
+    image_url?: string
+  }>
+}
+
+export async function getOrderDetails(orderNumber: string): Promise<{
+  success: boolean
+  order?: OrderDetails
+  error?: string
+}> {
+  try {
+    if (!orderNumber) {
+      return { success: false, error: 'Numéro de commande manquant' }
+    }
+
+    // Récupérer les informations principales de la commande
+    const { data: orderData, error: orderError } = await supabase
+      .from('orders')
+      .select('id, order_number, first_name, last_name, email, phone, status, created_at')
+      .eq('order_number', orderNumber)
+      .single()
+
+    if (orderError || !orderData) {
+      console.error('Erreur lors de la récupération de la commande:', orderError?.message || 'Commande introuvable')
+      return {
+        success: false,
+        error: 'Impossible de trouver cette commande'
+      }
+    }
+
+    // Récupérer les items de la commande
+    const { data: orderItems, error: itemsError } = await supabase
+      .from('order_items')
+      .select('id, image_name')
+      .eq('order_id', orderData.id)
+
+    if (itemsError) {
+      console.error('Erreur lors de la récupération des éléments de la commande:', itemsError.message)
+      return {
+        success: false,
+        error: 'Impossible de récupérer les éléments de la commande'
+      }
+    }
+
+    // Enrichir les items de commande avec les URLs signées
+    const enrichedItems = await Promise.all(
+      (orderItems || []).map(async (item) => {
+        try {
+          // Générer l'URL signée directement avec Minio
+          const signedUrl = await createPresignedUrlToDownload({
+            bucketName: 'images', // Ajustez selon votre configuration
+            fileName: item.image_name,
+            expiry: 3600 // URL valide pendant 1h
+          })
+
+          return {
+            ...item,
+            image_url: signedUrl
+          }
+        } catch (err) {
+          console.error(`Erreur lors de la génération de l'URL pour ${item.image_name}:`, err)
+          // Retourner l'élément sans URL en cas d'erreur
+          return item
+        }
+      })
+    )
+
+    // Construire l'objet de retour
+    const order: OrderDetails = {
+      ...orderData,
+      items: enrichedItems
+    }
+
+    return { success: true, order }
+  } catch (error) {
+    console.error('Erreur lors de la récupération des détails de la commande:', error)
+    return {
+      success: false,
+      error: 'Une erreur inattendue s\'est produite'
+    }
+  }
 }
 
 export async function cancelOrder(orderNumber: string, email: string): Promise<CancelOrderResult> {

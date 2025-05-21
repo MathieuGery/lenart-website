@@ -312,8 +312,8 @@ export default function CheckoutItems() {
 
           <button
             className={`w-full py-3 rounded-md transition-colors ${isFormValid && !isSubmitting
-                ? 'bg-teal-600 text-white hover:bg-teal-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              ? 'bg-teal-600 text-white hover:bg-teal-700'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             onClick={handleSubmitOrder}
             disabled={!isFormValid || isSubmitting}
@@ -337,7 +337,7 @@ export default function CheckoutItems() {
               <div className="flex flex-col items-center">
                 {/* Loader spinner */}
                 <div className="w-16 h-16 border-4 border-t-teal-600 border-teal-200 rounded-full animate-spin mb-5"></div>
-                
+
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Traitement en cours...</h3>
                 <p className="text-sm text-gray-500 text-center">
                   Veuillez patienter pendant que nous enregistrons votre commande.

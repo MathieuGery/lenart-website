@@ -4,15 +4,33 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { FadeIn } from '@/components/FadeIn'
 import { Button } from '@/components/Button'
-import { cancelOrder } from './action'
+import { cancelOrder, getOrderDetails } from './action'
 
 const CART_STORAGE_KEY = 'shop-cart-items'
+
+type OrderDetails = {
+  id: string
+  order_number: string
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  status: string
+  created_at: string
+  items: Array<{
+    id: string
+    image_name: string
+    image_url?: string
+  }>
+}
 
 export default function OrderConfirmationContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const orderNumber = searchParams.get('orderNumber')
 
+  const [order, setOrder] = useState<OrderDetails | null>(null)
+  const [isLoadingOrder, setIsLoadingOrder] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -24,10 +42,30 @@ export default function OrderConfirmationContent() {
     localStorage.removeItem(CART_STORAGE_KEY)
   }
 
+  // Récupérer les détails de la commande
   useEffect(() => {
-    // On vide le panier après la confirmation de commande
-    emptyCart()
-  }, [])
+    if (!orderNumber) return
+
+    const fetchOrderDetails = async () => {
+      try {
+        const result = await getOrderDetails(orderNumber)
+
+        if (result.success && result.order) {
+          setOrder(result.order)
+        } else {
+          setError(result.error || 'Impossible de récupérer les détails de la commande')
+        }
+      } catch (err) {
+        console.error('Erreur lors de la récupération des détails:', err)
+        setError('Une erreur est survenue lors de la récupération des détails de la commande')
+      } finally {
+        setIsLoadingOrder(false)
+      }
+    }
+
+    fetchOrderDetails()
+    emptyCart() // On vide le panier après la confirmation de commande
+  }, [orderNumber])
 
   // Gérer l'annulation de la commande
   const handleCancelOrder = async () => {
@@ -73,14 +111,109 @@ export default function OrderConfirmationContent() {
     }
   }
 
+  if (isLoadingOrder) {
+    return <div className="text-center py-8">Chargement des détails de la commande...</div>
+  }
+
+  if (!order) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md">
+        {error || "La commande n'a pas pu être trouvée"}
+      </div>
+    )
+  }
+
+  // Déterminer le statut de la commande pour l'affichage
+  const getStatusBadge = () => {
+    switch (order.status) {
+      case 'pending':
+        return <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">En attente</span>
+      case 'canceled':
+        return <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-medium">Annulée</span>
+      case 'completed':
+        return <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">Complétée</span>
+      default:
+        return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-medium">{order.status}</span>
+    }
+  }
+
   return (
     <FadeIn>
       <div className="bg-white p-8 rounded-lg max-w-2xl mx-auto">
-        <h2 className="text-2xl font-medium text-gray-900 mb-4">Détails de la commande</h2>
+        <h2 className="text-2xl font-medium text-gray-900 mb-1">Détails de la commande</h2>
+        <div className="flex items-center mb-6">
+          <span className="text-gray-500 mr-2">Statut :</span>
+          {getStatusBadge()}
+        </div>
 
+        {/* Informations générales */}
         <div className="border-t border-b py-4 my-4">
-          <p className="text-gray-600">Numéro de commande: <span className="font-medium text-gray-900">{orderNumber}</span></p>
-          <p className="text-gray-600 mt-2">Un e-mail de confirmation vous a été envoyé.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Numéro de commande</h3>
+              <p className="font-medium text-gray-900 mt-1">{order.order_number}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Date</h3>
+              <p className="font-medium text-gray-900 mt-1">
+                {new Date(order.created_at).toLocaleString('fr-FR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  timeZone: 'UTC' // Use UTC to avoid timezone adjustments
+                })}
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Client</h3>
+              <p className="font-medium text-gray-900 mt-1">{order.first_name} {order.last_name}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Email</h3>
+                <p className="font-medium text-gray-900 mt-1">
+                    {order.email.replace(
+                    /(.{2})(.*)(@)(.*)(\..*)/, 
+                    (_, start, middle, at, domainName, tld) =>
+                      start + '*'.repeat(Math.min(middle.length, 5)) + at + 
+                      domainName.substring(0, 1) + '*'.repeat(Math.max(domainName.length - 1, 2)) + tld
+                    )}
+                </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Téléphone</h3>
+              <p className="font-medium text-gray-900 mt-1">{order.phone}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Liste des images commandées */}
+        <div className="my-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Images sélectionnées ({order.items.length})</h3>
+
+          <div className="space-y-4">
+            {order.items.map(item => (
+              <div key={item.id} className="flex items-center border rounded-lg p-3">
+                {item.image_url && (
+                  <div className="w-16 h-16 mr-4 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={item.image_url}
+                      alt={item.image_name.replace(/\.[^/.]+$/, "").replace(/_/g, " ")}
+                      className="h-full w-full object-cover object-center"
+                    />
+                  </div>
+                )}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900">
+                    {item.image_name.replace(/\.[^/.]+$/, "").replace(/_/g, " ")}
+                  </h4>
+                  <p className="mt-1 text-xs text-gray-500">Format haute résolution</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {error && (
@@ -100,13 +233,15 @@ export default function OrderConfirmationContent() {
             Retour à l'accueil
           </Button>
 
-          <button
-            onClick={() => setShowConfirmation(true)}
-            disabled={isLoading || !!success}
-            className="w-full py-3 border border-red-600 text-red-600 rounded-md hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'Annulation en cours...' : 'Annuler cette commande'}
-          </button>
+          {order.status !== 'canceled' && (
+            <button
+              onClick={() => setShowConfirmation(true)}
+              disabled={isLoading || !!success}
+              className="w-full py-3 border border-red-600 text-red-600 rounded-md hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Annulation en cours...' : 'Annuler cette commande'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -118,7 +253,7 @@ export default function OrderConfirmationContent() {
             <p className="text-gray-600 mb-5">
               Pour des raisons de sécurité, veuillez saisir l'adresse email utilisée lors de votre commande.
             </p>
-            
+
             {/* Champ de saisie email */}
             <div className="mb-5">
               <label htmlFor="confirmEmail" className="block text-sm font-medium text-gray-700 mb-1">
@@ -130,16 +265,15 @@ export default function OrderConfirmationContent() {
                 value={confirmEmail}
                 onChange={(e) => setConfirmEmail(e.target.value)}
                 placeholder="exemple@email.com"
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-                  emailError ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 ${emailError ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 disabled={isLoading}
               />
               {emailError && (
                 <p className="mt-1 text-sm text-red-600">{emailError}</p>
               )}
             </div>
-            
+
             <div className="flex flex-col sm:flex-row-reverse space-y-3 sm:space-y-0 sm:space-x-3 sm:space-x-reverse">
               <button
                 onClick={handleCancelOrder}
