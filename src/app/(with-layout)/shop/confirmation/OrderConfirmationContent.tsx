@@ -235,7 +235,7 @@ export default function OrderConfirmationContent() {
             Retour à l'accueil
           </Button>
 
-          {order.status === 'pending' && (
+          {order.status === 'waiting-for-payment' && (
             <button
               onClick={() => setShowConfirmation(true)}
               disabled={isLoading || !!success}

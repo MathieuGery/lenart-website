@@ -14,7 +14,7 @@ type FormuleDetails = {
   name: string;
   base_price: number;
   extra_photos: number;
-  extra_photos_price: number;
+  extra_photo_price: number;
 };
 
 type ShopImage = {
@@ -63,14 +63,32 @@ export async function sendEmailConfirmation(email: string, orderNumber: string) 
 
 export async function saveOrder(formData: FormData, cartItems: ShopImage[], formuleDetails: FormuleDetails) {
   try {
+    // Vérifier que les détails de la formule n'ont pas été modifiés localement
+    const { data: formuleFromDB, error: formuleError } = await supabase
+      .from('pricing_formules')
+      .select('id, name, base_price, extra_photo_price')
+      .eq('id', formuleDetails.id)
+      .single();
+
+    if (formuleError) {
+      throw new Error(`Erreur lors de la vérification de la formule: ${formuleError.message}`);
+    }
+
+    console.log('Formule récupérée de la base de données:', formuleFromDB);
+    // Vérifier que les informations de la formule correspondent à celles dans la base de données
+    if (
+      formuleFromDB.id !== formuleDetails.id ||
+      formuleFromDB.name !== formuleDetails.name ||
+      formuleFromDB.base_price !== formuleDetails.base_price ||
+      formuleFromDB.extra_photo_price !== formuleDetails.extra_photo_price
+    ) {
+      throw new Error('Les informations de la formule ont été modifiées. Veuillez réessayer.');
+    }
     // Générer un numéro de commande unique
     const orderNumber = await generateOrderNumber();
 
     // Calculer le prix total
-    const totalPrice = formuleDetails.base_price + formuleDetails.extra_photos_price;
-
-    // Envoyer email de confirmation
-    await sendEmailConfirmation(formData.email, orderNumber);
+    const totalPrice = formuleFromDB.base_price + (formuleFromDB.extra_photo_price * formuleDetails.extra_photos)
 
     // Créer une entrée dans la table des commandes
     const { data: order, error: orderError } = await supabase
@@ -87,7 +105,7 @@ export async function saveOrder(formData: FormData, cartItems: ShopImage[], form
         formule_name: formuleDetails.name,
         base_price: formuleDetails.base_price,
         extra_photos_count: formuleDetails.extra_photos,
-        extra_photos_price: formuleDetails.extra_photos_price,
+        extra_photos_price: formuleDetails.extra_photo_price || 0,
         created_at: new Date().toISOString()
       })
       .select('id, order_number')
@@ -110,6 +128,9 @@ export async function saveOrder(formData: FormData, cartItems: ShopImage[], form
     if (itemsError) {
       throw new Error(`Erreur lors de l'ajout des articles: ${itemsError.message}`);
     }
+
+    // Envoyer email de confirmation
+    await sendEmailConfirmation(formData.email, orderNumber);
 
     return {
       success: true,

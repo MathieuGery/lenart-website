@@ -28,7 +28,7 @@ type FormuleDetails = {
   name: string
   base_price: number
   extra_photos: number
-  extra_photos_price: number
+  extra_photo_price: number
 }
 
 // Clé de stockage localStorage
@@ -139,10 +139,16 @@ export default function CheckoutItems() {
     if (savedFormule) {
       try {
         const parsedFormule = JSON.parse(savedFormule)
+        console.log('Formule récupérée:', parsedFormule)
+        if (!parsedFormule.id) {
+          throw new Error('Formule ID manquant')
+        }
         setFormuleDetails(parsedFormule)
       } catch (error) {
         console.error('Erreur lors de la récupération de la formule:', error)
       }
+    } else {
+      console.error('Formule non trouvée dans le localStorage')
     }
 
     if (savedTotalPrice) {
@@ -334,7 +340,7 @@ export default function CheckoutItems() {
                 {formuleDetails.extra_photos > 0 && (
                   <p className="flex justify-between">
                     <span>{formuleDetails.extra_photos} photo(s) supplémentaire(s):</span>
-                    <span>{formuleDetails.extra_photos_price.toFixed(2)}€</span>
+                    <span>{(formuleDetails.extra_photo_price * formuleDetails.extra_photos).toFixed(2)}€</span>
                   </p>
                 )}
 

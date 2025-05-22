@@ -41,7 +41,6 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
   const [formules, setFormules] = useState<PricingFormule[]>([])
   const [selectedFormule, setSelectedFormule] = useState<PricingFormule | null>(null)
   const [totalPrice, setTotalPrice] = useState<number>(0)
-  const [extraPhotosPrice, setExtraPhotosPrice] = useState<number>(0)
   const [isLoadingPricing, setIsLoadingPricing] = useState(true)
 
   // Références et autres variables existantes
@@ -207,7 +206,6 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
   useEffect(() => {
     if (!selectedFormule || isLoadingPricing) {
       setTotalPrice(0);
-      setExtraPhotosPrice(0);
       return;
     }
 
@@ -216,7 +214,6 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
     // Formule tour complet - prix fixe
     if (selectedFormule.is_tour_complete) {
       setTotalPrice(selectedFormule.base_price);
-      setExtraPhotosPrice(0);
       return;
     }
 
@@ -232,7 +229,6 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
     }
 
     setTotalPrice(price);
-    setExtraPhotosPrice(extraPrice);
 
   }, [selectedFormule, cartItems, isLoadingPricing]);
 
@@ -275,7 +271,7 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
       base_price: selectedFormule.base_price,
       extra_photos: cartItems.length > selectedFormule.digital_photos_count ?
         cartItems.length - selectedFormule.digital_photos_count : 0,
-      extra_photos_price: extraPhotosPrice
+      extra_photo_price: selectedFormule.extra_photo_price,
     }));
 
     router.push('/shop/checkout');
@@ -372,12 +368,12 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
                 </div>
 
                 {/* Photos supplémentaires si applicable */}
-                {extraPhotosPrice > 0 && selectedFormule.extra_photo_price && (
+                {selectedFormule.extra_photo_price && (
                   <div className="flex justify-between text-xs mb-1">
                     <span>
                       {cartItems.length - selectedFormule.digital_photos_count} photo(s) supplémentaire(s):
                     </span>
-                    <span>{extraPhotosPrice.toFixed(2)}€</span>
+                    <span>{selectedFormule.extra_photo_price * (cartItems.length - selectedFormule.digital_photos_count)}€</span>
                   </div>
                 )}
 
@@ -401,6 +397,15 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
 
       <FadeInStagger>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {images.length === 0 ? (
+            <div className="col-span-full py-10 text-center">
+              <p className="text-lg text-gray-600">
+                Aucune image n'est disponible pour le moment.
+              </p>
+              <p className="text-sm text-gray-500 mt-2">
+                Veuillez revenir plus tard pour découvrir nos photos.
+              </p>
+            </div>) : <></>}
           {images.map((image, index) => (
             <FadeIn key={image.name}>
               <div
