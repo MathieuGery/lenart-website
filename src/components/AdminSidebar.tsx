@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
+import { usePathname } from 'next/navigation'
 import {
   Bars3Icon,
   CalendarIcon,
@@ -18,8 +19,8 @@ import {
 import Link from 'next/link'
 
 const navigation = [
-  { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon, current: true },
-  { name: 'Commandes', href: '/admin/dashboard/orders', icon: DocumentDuplicateIcon, current: false },
+  { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon },
+  { name: 'Commandes', href: '/admin/dashboard/orders', icon: DocumentDuplicateIcon },
 ]
 
 function classNames(...classes: string[]) {
@@ -28,6 +29,14 @@ function classNames(...classes: string[]) {
 
 export default function AdminSidebar({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const pathname = usePathname()
+
+  // Détermine si un lien de navigation est actif en fonction du chemin actuel
+  const isActive = (href: string) => {
+    // Vérifier si le chemin actuel correspond exactement ou commence par le href
+    return pathname === href || 
+           (href !== '/admin/dashboard' && pathname.startsWith(href));
+  }
 
   return (
     <>
@@ -89,7 +98,7 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
                                 <Link
                                   href={item.href}
                                   className={classNames(
-                                    item.current
+                                    isActive(item.href)
                                       ? 'bg-gray-100 text-gray-900'
                                       : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
                                     'group flex gap-x-3 rounded-md p-2 text-sm font-semibold'
@@ -97,7 +106,7 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
                                 >
                                   <item.icon
                                     className={classNames(
-                                      item.current ? 'text-gray-700' : 'text-gray-400 group-hover:text-gray-700',
+                                      isActive(item.href) ? 'text-gray-700' : 'text-gray-400 group-hover:text-gray-700',
                                       'h-6 w-6 shrink-0'
                                     )}
                                     aria-hidden="true"
@@ -109,15 +118,14 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
                           </ul>
                         </li>
                         <li className="-mx-6 mt-auto">
-                          <Link
-                            href="/admin/profile"
+                          <div
                             className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50"
                           >
                             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
                               <UserIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
                             </span>
-                            <span>Mon profil</span>
-                          </Link>
+                            <span>Admin</span>
+                          </div>
                         </li>
                       </ul>
                     </nav>
@@ -146,7 +154,7 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
                         <Link
                           href={item.href}
                           className={classNames(
-                            item.current
+                            isActive(item.href)
                               ? 'bg-gray-100 text-gray-900'
                               : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
                             'group flex gap-x-3 rounded-md p-2 text-sm font-semibold'
@@ -154,7 +162,7 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
                         >
                           <item.icon
                             className={classNames(
-                              item.current ? 'text-gray-700' : 'text-gray-400 group-hover:text-gray-700',
+                              isActive(item.href) ? 'text-gray-700' : 'text-gray-400 group-hover:text-gray-700',
                               'h-6 w-6 shrink-0'
                             )}
                             aria-hidden="true"
@@ -166,15 +174,14 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
                   </ul>
                 </li>
                 <li className="-mx-6 mt-auto mb-4">
-                  <Link
-                    href="/admin/profile"
+                  <div
                     className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 rounded-md"
                   >
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
                       <UserIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
                     </span>
-                    <span>Mon profil</span>
-                  </Link>
+                    <span>Admin</span>
+                  </div>
                 </li>
               </ul>
             </nav>
@@ -187,12 +194,12 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
             <Bars3Icon className="h-6 w-6" aria-hidden="true" />
           </button>
           <div className="flex-1 text-sm font-semibold text-gray-900">Admin</div>
-          <Link href="/admin/profile">
-            <span className="sr-only">Votre profil</span>
+          <>
+            <span className="sr-only">Admin</span>
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
               <UserIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
             </span>
-          </Link>
+          </>
         </div>
 
         <main className="lg:pl-72">

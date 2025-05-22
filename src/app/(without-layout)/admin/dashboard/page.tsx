@@ -7,8 +7,8 @@ import {
   ShoppingBagIcon,
   ClockIcon,
   CheckCircleIcon,
-  XCircleIcon,
-  ArrowUpIcon
+  ArrowUpIcon,
+  XCircleIcon
 } from '@heroicons/react/24/outline';
 
 export const dynamic = 'force-dynamic';
@@ -93,7 +93,7 @@ export default async function AdminDashboardPage() {
 
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Statistiques des commandes</h3>
 
-      <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5 mb-10">
+      <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 md:grid-cols-2 2xl:grid-cols-5 mb-10">
         {/* Total des commandes */}
         <div className="relative overflow-hidden rounded-lg bg-white px-4 py-5 shadow-sm border border-neutral-200 hover:shadow-md transition-shadow duration-300">
           <dt>
@@ -122,14 +122,6 @@ export default async function AdminDashboardPage() {
           </dt>
           <dd className="ml-16 flex items-baseline">
             <p className="text-2xl font-semibold text-gray-900">{ordersByStatus['waiting-for-payment'] || 0}</p>
-            <div className="ml-auto">
-              <Link
-                href="/admin/dashboard/orders?status=waiting-for-payment"
-                className="text-sm font-medium text-neutral-700 hover:text-neutral-900"
-              >
-                Filtrer
-              </Link>
-            </div>
           </dd>
         </div>
 
@@ -143,14 +135,6 @@ export default async function AdminDashboardPage() {
           </dt>
           <dd className="ml-16 flex items-baseline">
             <p className="text-2xl font-semibold text-gray-900">{ordersByStatus['pending'] || 0}</p>
-            <div className="ml-auto">
-              <Link
-                href="/admin/dashboard/orders?status=pending"
-                className="text-sm font-medium text-neutral-700 hover:text-neutral-900"
-              >
-                Filtrer
-              </Link>
-            </div>
           </dd>
         </div>
 
@@ -164,14 +148,6 @@ export default async function AdminDashboardPage() {
           </dt>
           <dd className="ml-16 flex items-baseline">
             <p className="text-2xl font-semibold text-gray-900">{ordersByStatus['completed'] || 0}</p>
-            <div className="ml-auto">
-              <Link
-                href="/admin/dashboard/orders?status=completed"
-                className="text-sm font-medium text-neutral-700 hover:text-neutral-900"
-              >
-                Filtrer
-              </Link>
-            </div>
           </dd>
         </div>
 
@@ -185,14 +161,6 @@ export default async function AdminDashboardPage() {
           </dt>
           <dd className="ml-16 flex items-baseline">
             <p className="text-2xl font-semibold text-gray-900">{ordersByStatus['canceled'] || 0}</p>
-            <div className="ml-auto">
-              <Link
-                href="/admin/dashboard/orders?status=canceled"
-                className="text-sm font-medium text-neutral-700 hover:text-neutral-900"
-              >
-                Filtrer
-              </Link>
-            </div>
           </dd>
         </div>
       </dl>
