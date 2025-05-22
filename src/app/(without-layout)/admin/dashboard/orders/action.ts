@@ -154,3 +154,97 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
     };
   }
 }
+
+/**
+ * Récupère les statistiques des commandes
+ */
+export async function getOrdersStats(): Promise<{ 
+  total: number, 
+  byStatus: Record<string, number>, 
+  error: string | null 
+}> {
+  try {
+    const supabase = getSupabaseServerClient();
+    
+    // Récupérer toutes les commandes
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('status');
+
+    if (error) {
+      console.error('Erreur lors de la récupération des statistiques de commandes:', error);
+      return { total: 0, byStatus: {}, error: error.message };
+    }
+
+    // Calculer le nombre total de commandes
+    const total = orders.length;
+
+    // Calculer le nombre de commandes par statut
+    const byStatus: Record<string, number> = {};
+    orders.forEach(order => {
+      const status = order.status;
+      byStatus[status] = (byStatus[status] || 0) + 1;
+    });
+
+    return { total, byStatus, error: null };
+  } catch (error) {
+    console.error('Erreur inattendue lors de la récupération des statistiques de commandes:', error);
+    return { 
+      total: 0, 
+      byStatus: {}, 
+      error: error instanceof Error ? error.message : 'Erreur inconnue' 
+    };
+  }
+}
+
+/**
+ * Type simplifié pour les commandes récentes du tableau de bord
+ */
+export type RecentOrder = {
+  id: string;
+  order_number: string;
+  created_at: string;
+  status: string;
+  total_price: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+}
+
+/**
+ * Récupère les commandes récentes (les 5 dernières)
+ */
+export async function getRecentOrders(): Promise<{ orders: RecentOrder[], error: string | null }> {
+  try {
+    const supabase = getSupabaseServerClient();
+    
+    // Récupérer les 5 commandes les plus récentes
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select(`
+        id,
+        order_number,
+        created_at,
+        status,
+        total_price,
+        first_name,
+        last_name,
+        email
+      `)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (error) {
+      console.error('Erreur lors de la récupération des commandes récentes:', error);
+      return { orders: [], error: error.message };
+    }
+
+    return { orders: orders as RecentOrder[], error: null };
+  } catch (error) {
+    console.error('Erreur inattendue lors de la récupération des commandes récentes:', error);
+    return { 
+      orders: [], 
+      error: error instanceof Error ? error.message : 'Erreur inconnue' 
+    };
+  }
+}
