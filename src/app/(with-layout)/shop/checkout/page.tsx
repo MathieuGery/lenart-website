@@ -226,7 +226,7 @@ export default function CheckoutItems() {
                 </div>
 
                 {/* Bouton de suppression */}
-                <button
+                {/* <button
                   className="absolute top-2 right-2 p-1.5 bg-red-50 text-red-600 rounded-full 
                             transition-all duration-200 transform hover:scale-125 hover:bg-red-100 
                             focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -234,7 +234,7 @@ export default function CheckoutItems() {
                   aria-label="Supprimer du panier"
                 >
                   <XMarkIcon className="h-4 w-4" />
-                </button>
+                </button> */}
               </div>
             ))}
           </div>
