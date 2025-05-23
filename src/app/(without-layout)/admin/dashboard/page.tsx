@@ -8,7 +8,8 @@ import {
   ClockIcon,
   CheckCircleIcon,
   ArrowUpIcon,
-  XCircleIcon
+  XCircleIcon,
+  CurrencyEuroIcon
 } from '@heroicons/react/24/outline';
 
 export const dynamic = 'force-dynamic';
@@ -41,7 +42,7 @@ export default async function AdminDashboardPage() {
   }
 
   // Récupérer les statistiques des commandes
-  const { total: totalOrders, byStatus: ordersByStatus, error: statsError } = await getOrdersStats();
+  const { total: totalOrders, byStatus: ordersByStatus, byFormule: ordersByFormule, totalAmount, error: statsError } = await getOrdersStats();
 
   // Récupérer les commandes récentes
   const { orders: recentOrders, error: recentOrdersError } = await getRecentOrders();
@@ -165,38 +166,33 @@ export default async function AdminDashboardPage() {
         </div>
       </dl>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-gray-50 p-6 rounded-xl border border-neutral-200 hover:bg-gray-100 hover:border-neutral-300 transition-colors">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Statistiques</h2>
-          <p className="text-gray-600">Graphiques et tendances</p>
-          <div className="mt-4">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-              Bientôt disponible
-            </span>
-          </div>
-          <p className="text-xs text-gray-500 mt-2 italic">Fonctionnalité en cours de développement</p>
-        </div>
+      {/* Section des statistiques financières et formules */}
+      <div className="mt-10">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Statistiques financières</h3>
 
-        <div className="bg-gray-50 p-6 rounded-xl border border-neutral-200 cursor-not-allowed opacity-75">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Galeries</h2>
-          <p className="text-gray-600">Gérez vos collections de photos</p>
-          <div className="mt-4">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-              Bientôt disponible
-            </span>
-          </div>
-          <p className="text-xs text-gray-500 mt-2 italic">Fonctionnalité en cours de développement</p>
-        </div>
+        <div className="grid grid-cols-1 gap-5 mb-8">
+          {/* Montant total des commandes */}
+          <div className="relative overflow-hidden rounded-lg bg-white p-6 shadow-sm border border-neutral-200 hover:shadow-md transition-shadow duration-300">
+            <div className="flex items-center mb-4">
+              <div className="rounded-md bg-green-600 p-3 mr-4">
+                <CurrencyEuroIcon className="h-6 w-6 text-white" aria-hidden="true" />
+              </div>
+              <h4 className="text-lg font-semibold text-gray-900">Montant total des commandes</h4>
+            </div>
+            <p className="text-3xl font-bold text-gray-900">{totalAmount.toFixed(2)}€</p>
 
-        <div className="bg-gray-50 p-6 rounded-xl border border-neutral-200 cursor-not-allowed opacity-75">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Utilisateurs</h2>
-          <p className="text-gray-600">Gérez les utilisateurs et leurs accès</p>
-          <div className="mt-4">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-              Bientôt disponible
-            </span>
+            <div className="mt-6">
+              <h5 className="text-sm font-semibold text-gray-700 mb-3">Commandes par formule</h5>
+              <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+                {Object.entries(ordersByFormule).map(([formuleName, count]) => (
+                  <div key={formuleName} className="bg-gray-50 rounded-lg p-3">
+                    <dt className="text-sm font-medium text-gray-500 truncate">{formuleName}</dt>
+                    <dd className="mt-1 text-lg font-semibold text-gray-900">{count}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
           </div>
-          <p className="text-xs text-gray-500 mt-2 italic">Fonctionnalité en cours de développement</p>
         </div>
       </div>
 

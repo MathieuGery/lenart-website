@@ -30,7 +30,7 @@ export default async function Shop() {
     <>
       <PageIntro
         eyebrow="Images à vendre"
-        title="Notre collection"
+        title="Ma collection"
       >
         <p>
           Parcourez la galerie et sélectionnez vos clichés préférés en les ajoutant au panier. Les images présentées ici sont en qualité réduite pour un affichage web optimal. Les fichiers que vous recevrez après votre commande seront en haute définition, sans filigrane, et soigneusement retouchés.

@@ -17,6 +17,10 @@ type OrderDetails = {
   phone: string
   status: string
   created_at: string
+  formule_name: string
+  base_price: number
+  extra_photos_count: number
+  total_price: number
   items: Array<{
     id: string
     image_name: string
@@ -186,6 +190,35 @@ export default function OrderConfirmationContent() {
             <div>
               <h3 className="text-sm font-medium text-gray-500">Téléphone</h3>
               <p className="font-medium text-gray-900 mt-1">{order.phone}</p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Détails de la formule et prix */}
+        <div className="border-b py-4 my-4">
+          <h3 className="text-lg font-medium text-gray-900 mb-3">Détails de la formule</h3>
+          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-sm font-medium text-gray-500">Formule choisie</h4>
+                <p className="font-medium text-gray-900 mt-1">{order.formule_name}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-500">Prix de base</h4>
+                <p className="font-medium text-gray-900 mt-1">{order.base_price.toFixed(2)}€</p>
+              </div>
+              {order.extra_photos_count > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500">Photos supplémentaires</h4>
+                  <p className="font-medium text-gray-900 mt-1">{order.extra_photos_count}</p>
+                </div>
+              )}
+              <div className="sm:col-span-2 pt-3 mt-3 border-t border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h4 className="text-base font-semibold text-gray-900">Total</h4>
+                  <p className="font-bold text-gray-900 text-lg">{order.total_price.toFixed(2)}€</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

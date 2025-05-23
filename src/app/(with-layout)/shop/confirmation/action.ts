@@ -19,6 +19,10 @@ type OrderDetails = {
   phone: string
   status: string
   created_at: string
+  formule_name: string
+  base_price: number
+  extra_photos_count: number
+  total_price: number
   items: Array<{
     id: string
     image_name: string
@@ -39,7 +43,7 @@ export async function getOrderDetails(orderNumber: string): Promise<{
     // Récupérer les informations principales de la commande
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
-      .select('id, order_number, first_name, last_name, email, phone, status, created_at')
+      .select('id, order_number, first_name, last_name, email, phone, status, created_at, formule_name, base_price, extra_photos_count, total_price')
       .eq('order_number', orderNumber)
       .single()
 

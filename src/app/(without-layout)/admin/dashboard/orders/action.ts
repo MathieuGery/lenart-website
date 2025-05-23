@@ -161,37 +161,54 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
 export async function getOrdersStats(): Promise<{ 
   total: number, 
   byStatus: Record<string, number>, 
+  byFormule: Record<string, number>, 
+  totalAmount: number,
   error: string | null 
 }> {
   try {
     const supabase = getSupabaseServerClient();
     
-    // Récupérer toutes les commandes
+    // Récupérer toutes les commandes avec leur montant et formule
     const { data: orders, error } = await supabase
       .from('orders')
-      .select('status');
+      .select('status, total_price, formule_name');
 
     if (error) {
       console.error('Erreur lors de la récupération des statistiques de commandes:', error);
-      return { total: 0, byStatus: {}, error: error.message };
+      return { total: 0, byStatus: {}, byFormule: {}, totalAmount: 0, error: error.message };
     }
 
     // Calculer le nombre total de commandes
     const total = orders.length;
 
+    // Calculer le montant total de toutes les commandes
+    const totalAmount = orders.reduce((sum, order) => sum + (order.total_price || 0), 0);
+
     // Calculer le nombre de commandes par statut
     const byStatus: Record<string, number> = {};
+    // Calculer le nombre de commandes par formule
+    const byFormule: Record<string, number> = {};
+    
     orders.forEach(order => {
+      // Comptage par statut
       const status = order.status;
       byStatus[status] = (byStatus[status] || 0) + 1;
+      
+      // Comptage par formule
+      const formule = order.formule_name;
+      if (formule) {
+        byFormule[formule] = (byFormule[formule] || 0) + 1;
+      }
     });
 
-    return { total, byStatus, error: null };
+    return { total, byStatus, byFormule, totalAmount, error: null };
   } catch (error) {
     console.error('Erreur inattendue lors de la récupération des statistiques de commandes:', error);
     return { 
       total: 0, 
-      byStatus: {}, 
+      byStatus: {},
+      byFormule: {},
+      totalAmount: 0, 
       error: error instanceof Error ? error.message : 'Erreur inconnue' 
     };
   }
