@@ -7,6 +7,7 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import StatusUpdateForm from '@/components/StatusUpdateForm';
 import AmazonLinkUpdateForm from '@/components/AmazonLinkUpdateForm';
+import SendEmailButton from '@/components/SendEmailButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -151,7 +152,19 @@ export default async function OrderDetailPage({ params }: { params: { id: string
 
           <div className="bg-gray-50 p-6 rounded-lg border border-neutral-200 mt-4">
             <h2 className="text-lg font-medium text-gray-900 mb-4">Lien Amazon</h2>
-            <AmazonLinkUpdateForm orderId={order.id} currentAmazonLink={order.amazon_link} />
+            <AmazonLinkUpdateForm orderId={order.id} currentAmazonLink={order.amazon_link || null} />
+          </div>
+
+          <div className="bg-gray-50 p-6 rounded-lg border border-neutral-200 mt-4">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">Envoyer par email</h2>
+            <SendEmailButton
+              orderId={order.id}
+              orderNumber={order.order_number}
+              customerName={`${order.first_name} ${order.last_name}`}
+              email={order.email}
+              amazonLink={order.amazon_link || null}
+              formuleName={order.formule_name}
+            />
           </div>
         </div>
 
@@ -184,10 +197,10 @@ export default async function OrderDetailPage({ params }: { params: { id: string
               {order.amazon_link && (
                 <div className="pt-3 mt-3 border-t border-gray-200">
                   <p className="text-sm text-gray-500">Lien Amazon</p>
-                  <a 
-                    href={order.amazon_link} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                  <a
+                    href={order.amazon_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-sm font-medium text-blue-600 hover:text-blue-800 break-all"
                   >
                     {order.amazon_link}
@@ -200,27 +213,27 @@ export default async function OrderDetailPage({ params }: { params: { id: string
 
             {items.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {items.map((item) => (
-                <div key={item.id} className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
-                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 p-2 z-10">
-                  <p className="text-xs text-white break-words">
-                  {item.image_name}
-                  </p>
-                </div>
-                {item.image_url ? (
-                  <Image
-                  src={item.image_url}
-                  alt={item.image_name}
-                  className="object-cover"
-                  fill
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                  <span className="text-xs text-gray-500">Image non disponible</span>
+                {items.map((item) => (
+                  <div key={item.id} className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 p-2 z-10">
+                      <p className="text-xs text-white break-words">
+                        {item.image_name}
+                      </p>
+                    </div>
+                    {item.image_url ? (
+                      <Image
+                        src={item.image_url}
+                        alt={item.image_name}
+                        className="object-cover"
+                        fill
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <span className="text-xs text-gray-500">Image non disponible</span>
+                      </div>
+                    )}
                   </div>
-                )}
-                </div>
-              ))}
+                ))}
               </div>
             ) : (
               <p className="text-sm text-gray-500">Aucune photo sélectionnée</p>

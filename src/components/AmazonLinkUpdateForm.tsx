@@ -37,7 +37,7 @@ export default function AmazonLinkUpdateForm({ orderId, currentAmazonLink }: Ama
       }
 
       setSuccess('Lien Amazon mis à jour avec succès')
-      
+
       // Rafraîchir la page pour afficher le nouveau lien
       router.refresh()
     } catch (error) {
@@ -55,13 +55,13 @@ export default function AmazonLinkUpdateForm({ orderId, currentAmazonLink }: Ama
           <p className="text-xs text-red-800">{error}</p>
         </div>
       )}
-      
+
       {success && (
         <div className="mb-4 p-2 bg-green-50 border border-green-200 rounded-md">
           <p className="text-xs text-green-800">{success}</p>
         </div>
       )}
-      
+
       <div className="mb-4">
         <label htmlFor="amazonLink" className="block text-sm font-medium text-gray-700 mb-1">
           Lien Amazon
