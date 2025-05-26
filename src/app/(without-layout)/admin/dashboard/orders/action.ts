@@ -116,7 +116,6 @@ export async function getOrderById(orderId: string): Promise<{ order: Order | nu
       }
     }));
 
-    console.log('Items enrichis avec les URLs:', itemsWithImages);
     return { order, items: itemsWithImages, error: null };
   } catch (error) {
     return {

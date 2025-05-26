@@ -15,12 +15,14 @@ import {
   UserIcon,
   CogIcon,
   XMarkIcon,
+  PercentBadgeIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 
 const navigation = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon },
   { name: 'Commandes', href: '/admin/dashboard/orders', icon: DocumentDuplicateIcon },
+  { name: 'Codes promo', href: '/admin/dashboard/promo-codes', icon: PercentBadgeIcon },
 ]
 
 function classNames(...classes: string[]) {
@@ -34,8 +36,8 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
   // Détermine si un lien de navigation est actif en fonction du chemin actuel
   const isActive = (href: string) => {
     // Vérifier si le chemin actuel correspond exactement ou commence par le href
-    return pathname === href || 
-           (href !== '/admin/dashboard' && pathname.startsWith(href));
+    return pathname === href ||
+      (href !== '/admin/dashboard' && pathname.startsWith(href));
   }
 
   return (
