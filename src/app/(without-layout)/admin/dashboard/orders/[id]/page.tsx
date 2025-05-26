@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import StatusUpdateForm from '@/components/StatusUpdateForm';
+import AmazonLinkUpdateForm from '@/components/AmazonLinkUpdateForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -147,6 +148,11 @@ export default async function OrderDetailPage({ params }: { params: { id: string
             <h2 className="text-lg font-medium text-gray-900 mb-4">Mettre à jour le statut</h2>
             <StatusUpdateForm orderId={order.id} currentStatus={order.status} />
           </div>
+
+          <div className="bg-gray-50 p-6 rounded-lg border border-neutral-200 mt-4">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">Lien Amazon</h2>
+            <AmazonLinkUpdateForm orderId={order.id} currentAmazonLink={order.amazon_link} />
+          </div>
         </div>
 
         {/* Détails de la commande */}
@@ -174,6 +180,20 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                 <p className="text-sm text-gray-500">Prix total</p>
                 <p className="text-lg font-bold text-gray-900">{order.total_price.toFixed(2)} €</p>
               </div>
+
+              {order.amazon_link && (
+                <div className="pt-3 mt-3 border-t border-gray-200">
+                  <p className="text-sm text-gray-500">Lien Amazon</p>
+                  <a 
+                    href={order.amazon_link} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-sm font-medium text-blue-600 hover:text-blue-800 break-all"
+                  >
+                    {order.amazon_link}
+                  </a>
+                </div>
+              )}
             </div>
 
             <h3 className="text-md font-medium text-gray-900 mt-8 mb-4">Photos sélectionnées ({items.length})</h3>

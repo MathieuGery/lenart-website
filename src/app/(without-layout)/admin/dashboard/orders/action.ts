@@ -17,6 +17,7 @@ export type Order = {
   formule_name: string;
   base_price: number;
   extra_photos_count: number;
+  amazon_link?: string | null;
   items_count?: number;
 }
 
@@ -73,7 +74,21 @@ export async function getOrderById(orderId: string): Promise<{ order: Order | nu
     // Récupérer la commande
     const { data: order, error } = await supabase
       .from('orders')
-      .select()
+      .select(`
+        id,
+        order_number,
+        first_name,
+        last_name,
+        email,
+        phone,
+        status,
+        created_at,
+        formule_name,
+        base_price,
+        extra_photos_count,
+        total_price,
+        amazon_link
+      `)
       .eq('id', orderId)
       .single();
 
