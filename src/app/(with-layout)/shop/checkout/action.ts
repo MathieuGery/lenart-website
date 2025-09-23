@@ -55,9 +55,9 @@ async function generateOrderNumber() {
   return `${datePrefix}-${sequence}`;
 }
 
-export async function sendEmailConfirmation(email: string, orderNumber: string) {
+export async function sendEmailConfirmation(email: string, orderNumber: string, totalPrice: number, formuleName: string) {
   const { data, error } = await supabase.functions.invoke('resend', {
-    body: { email: email, orderNumber: orderNumber },
+    body: { email: email, orderNumber: orderNumber, totalPrice: totalPrice, formuleName: formuleName },
   })
 }
 
@@ -130,7 +130,7 @@ export async function saveOrder(formData: FormData, cartItems: ShopImage[], form
     }
 
     // Envoyer email de confirmation
-    await sendEmailConfirmation(formData.email, orderNumber);
+    await sendEmailConfirmation(formData.email, orderNumber, totalPrice, formuleDetails.name);
 
     return {
       success: true,
