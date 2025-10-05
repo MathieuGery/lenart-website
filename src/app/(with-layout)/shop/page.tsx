@@ -13,11 +13,17 @@ export default async function Shop() {
   return (
     <>
       <PageIntro
-        eyebrow="Images à vendre"
-        title="Ma collection"
+        eyebrow="Sélection de collection"
+        title="Choisissez votre collection"
       >
         <p>
-          Parcourez la galerie et sélectionnez vos clichés préférés en les ajoutant au panier. Les images présentées ici sont en qualité réduite pour un affichage web optimal. Les fichiers que vous recevrez après votre commande seront en haute définition, sans filigrane, et soigneusement retouchés.
+          Sélectionnez la collection de photos qui vous intéresse pour accéder à la boutique. 
+          Chaque collection contient les moments forts capturés lors d'un événement spécifique. 
+          Une fois votre collection choisie, vous pourrez parcourir toutes les photos disponibles 
+          et sélectionner celles que vous souhaitez acheter.
+        </p>
+        <p className="mt-4 text-sm text-neutral-600">
+          � <strong>Étape 1 :</strong> Cliquez sur la collection qui vous intéresse pour découvrir toutes les photos disponibles
         </p>
       </PageIntro>
 

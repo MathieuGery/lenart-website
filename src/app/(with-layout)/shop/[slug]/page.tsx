@@ -47,7 +47,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
   return (
     <>
       <PageIntro
-        eyebrow="Images à vendre"
+        eyebrow="Images du concours"
         title={params.slug}
       >
         <p>
