@@ -1,30 +1,14 @@
 import { PageIntro } from '@/components/PageIntro'
-import { listBucketObjects, createPresignedUrlToDownload } from '@/utils/s3'
+import { listBuckets } from '@/utils/s3'
 import { Container } from '@/components/Container'
-import { ShopGallery } from './ShopGallery'
+import { FadeIn, FadeInStagger } from '@/components/FadeIn'
+import { Border } from '@/components/Border'
+import Link from 'next/link'
 
 export const revalidate = 0
 
 export default async function Shop() {
-  // Récupérer tous les objets du bucket 'images' - reste côté serveur
-  const objects = await listBucketObjects('images')
-
-  // Générer des URLs présignées pour chaque image - reste côté serveur
-  const imagesWithUrls = await Promise.all(
-    objects.map(async (object: any) => {
-      const signedUrl = await createPresignedUrlToDownload({
-        bucketName: 'images',
-        fileName: object.name,
-      })
-
-      return {
-        name: object.name,
-        url: signedUrl,
-        size: object.size,
-        lastModified: object.lastModified,
-      }
-    })
-  )
+  const buckets = await listBuckets()
 
   return (
     <>
@@ -38,8 +22,39 @@ export default async function Shop() {
       </PageIntro>
 
       <Container className="mt-16 sm:mt-20">
-        {/* On passe les données au composant client qui gèrera l'interaction */}
-        <ShopGallery images={imagesWithUrls} />
+        {/* Section des buckets */}
+        <FadeIn>
+          <div className="mb-24 sm:mb-32">
+            <h2 className="font-display text-2xl font-semibold text-neutral-950 mb-12">Collections disponibles</h2>
+            <FadeInStagger className="isolate mx-auto mt-10 grid max-w-md grid-cols-1 gap-8 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+              {buckets.map((bucket) => (
+                <FadeIn key={bucket.name}>
+                  <div className="group relative overflow-hidden rounded-3xl bg-white p-8 ring-1 ring-neutral-200 transition-all hover:bg-neutral-50 hover:ring-neutral-300 xl:p-10">
+                    <Border position="top" className="mb-6" />
+                    <h3 className="font-display text-lg font-semibold text-neutral-950 mb-4">
+                      {bucket.name}
+                    </h3>
+                    <p className="text-sm text-neutral-600 mb-6 leading-6">
+                      Collection créée le {bucket.creationDate.toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </p>
+                    <div className="mt-8">
+                      <Link
+                        href={`/shop/${bucket.name}`}
+                        className="block w-full rounded-md bg-neutral-900 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-neutral-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-600 transition-colors"
+                      >
+                        Découvrir la collection
+                      </Link>
+                    </div>
+                  </div>
+                </FadeIn>
+              ))}
+            </FadeInStagger>
+          </div>
+        </FadeIn>
       </Container>
     </>
   )

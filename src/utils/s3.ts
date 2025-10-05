@@ -30,7 +30,6 @@ export async function listBucketObjects(bucketName: string): Promise<{
   })
 }
 
-
 export async function createPresignedUrlToDownload({
   bucketName,
   fileName,
@@ -41,4 +40,19 @@ export async function createPresignedUrlToDownload({
   expiry?: number
 }) {
   return await s3Client.presignedGetObject(bucketName, fileName, expiry)
+}
+
+export async function listBuckets(): Promise<{
+  name: string
+  creationDate: Date
+}[]> {
+  try {
+    const buckets = await s3Client.listBuckets()
+    return buckets.map(bucket => ({
+      name: bucket.name,
+      creationDate: bucket.creationDate
+    }))
+  } catch (error) {
+    throw new Error(`Erreur lors de la récupération des buckets: ${error}`)
+  }
 }

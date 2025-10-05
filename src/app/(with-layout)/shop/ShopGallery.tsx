@@ -34,7 +34,7 @@ const CART_STORAGE_KEY = 'shop-cart-items'
 export function ShopGallery({ images }: { images: ShopImage[] }) {
   // États existants
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
-  const [cartItems, setCartItems] = useState<ShopImage[]>(localStorage.getItem(CART_STORAGE_KEY) ? JSON.parse(localStorage.getItem(CART_STORAGE_KEY)!) : [])
+  const [cartItems, setCartItems] = useState<ShopImage[]>([])
   const router = useRouter()
 
   // Nouveaux états pour le pricing
@@ -114,6 +114,26 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
     touchEndX.current = null
   }
 
+  // Charger les données du localStorage côté client uniquement
+  useEffect(() => {
+    const savedCartItems = localStorage.getItem(CART_STORAGE_KEY)
+    if (savedCartItems) {
+      try {
+        setCartItems(JSON.parse(savedCartItems))
+      } catch (error) {
+        console.error('Erreur lors du chargement du panier:', error)
+        localStorage.removeItem(CART_STORAGE_KEY) // Nettoyer les données corrompues
+      }
+    }
+  }, [])
+
+  // Sauvegarder le panier dans localStorage quand il change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems))
+    }
+  }, [cartItems])
+
   // Récupérer les formules depuis Supabase
   useEffect(() => {
     async function fetchPricingFormules() {
@@ -168,10 +188,10 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
   // Identifier la meilleure formule en fonction du nombre de photos
   const findBestFormule = (availableFormules: PricingFormule[], photoCount: number) => {
     // Si la collection est complète, utiliser la formule TOUR D'HONNEUR
-    const tourFormule = availableFormules.find(f => f.is_tour_complete);
-    if (tourFormule) {
-      return tourFormule;
-    }
+    // const tourFormule = availableFormules.find(f => f.is_tour_complete);
+    // if (tourFormule) {
+    //   return tourFormule;
+    // }
 
     // Sinon, trouver la formule qui correspond le mieux au nombre de photos
     for (const formule of availableFormules.filter(f => !f.is_featured)) {
@@ -262,17 +282,18 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
   const handleCheckout = () => {
     if (!selectedFormule) return;
 
-    // Sauvegarde du panier, du prix et de la formule sélectionnée
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
-    localStorage.setItem('shop-cart-total-price', totalPrice.toString());
-    localStorage.setItem('shop-cart-formule', JSON.stringify({
-      id: selectedFormule.id,
-      name: selectedFormule.name,
-      base_price: selectedFormule.base_price,
-      extra_photos: cartItems.length > selectedFormule.digital_photos_count ?
-        cartItems.length - selectedFormule.digital_photos_count : 0,
-      extra_photo_price: selectedFormule.extra_photo_price,
-    }));
+    // Sauvegarde du prix et de la formule sélectionnée (le panier est déjà sauvegardé automatiquement)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('shop-cart-total-price', totalPrice.toString());
+      localStorage.setItem('shop-cart-formule', JSON.stringify({
+        id: selectedFormule.id,
+        name: selectedFormule.name,
+        base_price: selectedFormule.base_price,
+        extra_photos: cartItems.length > selectedFormule.digital_photos_count ?
+          cartItems.length - selectedFormule.digital_photos_count : 0,
+        extra_photo_price: selectedFormule.extra_photo_price,
+      }));
+    }
 
     router.push('/shop/checkout');
   };
@@ -338,7 +359,7 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
                         cartItems.length > formule.digital_photos_count &&
                         formule.extra_photo_price === null}
                     >
-                      {formule.name} - {formule.base_price.toFixed(2)}€
+                      {formule.name}
                     </option>
                   ))}
               </select>
