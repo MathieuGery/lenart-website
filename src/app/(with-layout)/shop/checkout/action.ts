@@ -6,7 +6,6 @@ type FormData = {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
 };
 
 type FormuleDetails = {
@@ -19,6 +18,7 @@ type FormuleDetails = {
 
 type ShopImage = {
   name: string;
+  bucket_name: string;
   url: string;
   size: number;
   lastModified: Date;
@@ -97,7 +97,6 @@ export async function saveOrder(formData: FormData, cartItems: ShopImage[], form
         first_name: formData.firstName,
         last_name: formData.lastName,
         email: formData.email,
-        phone: formData.phone,
         status: 'waiting-for-payment',
         order_number: orderNumber,
         total_price: totalPrice,
@@ -118,7 +117,8 @@ export async function saveOrder(formData: FormData, cartItems: ShopImage[], form
     // Pour chaque image, ajouter une entrée dans la table order_items
     const orderItems = cartItems.map((item) => ({
       order_id: order.id,
-      image_name: item.name
+      image_name: item.name,
+      bucket_name: item.bucket_name,
     }));
 
     const { error: itemsError } = await supabase

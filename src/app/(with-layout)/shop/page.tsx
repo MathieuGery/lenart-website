@@ -38,7 +38,7 @@ export default async function Shop() {
                   <div className="group relative overflow-hidden rounded-3xl bg-white p-8 ring-1 ring-neutral-200 transition-all hover:bg-neutral-50 hover:ring-neutral-300 xl:p-10">
                     <Border position="top" className="mb-6" />
                     <h3 className="font-display text-lg font-semibold text-neutral-950 mb-4">
-                      {bucket.name}
+                      {bucket.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </h3>
                     <p className="text-sm text-neutral-600 mb-6 leading-6">
                       Collection créée le {bucket.creationDate.toLocaleDateString('fr-FR', {

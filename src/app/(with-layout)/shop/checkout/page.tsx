@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 // Type pour les images
 type ShopImage = {
   name: string
+  bucket_name: string
   url: string
   size: number
   lastModified: Date
@@ -20,7 +21,6 @@ type FormData = {
   firstName: string
   lastName: string
   email: string
-  phone: string
 }
 
 type FormuleDetails = {
@@ -49,8 +49,7 @@ export default function CheckoutItems() {
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
-    email: '',
-    phone: ''
+    email: ''
   })
 
   // État de validité du formulaire
@@ -60,8 +59,7 @@ export default function CheckoutItems() {
   const [formErrors, setFormErrors] = useState({
     firstName: '',
     lastName: '',
-    email: '',
-    phone: ''
+    email: ''
   })
 
   // Validation du formulaire
@@ -73,10 +71,7 @@ export default function CheckoutItems() {
         email: formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
           ? ''
           : 'Une adresse email valide est requise',
-        phone: formData.phone && /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/.test(formData.phone)
-          ? ''
-          : 'Un numéro de téléphone valide est requis'
-      }
+        }
 
       setFormErrors(errors)
       setIsFormValid(!Object.values(errors).some(error => error !== ''))
@@ -254,6 +249,7 @@ export default function CheckoutItems() {
                 type="text"
                 id="firstName"
                 name="firstName"
+                placeholder='Jean'
                 value={formData.firstName}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
@@ -273,6 +269,7 @@ export default function CheckoutItems() {
                 type="text"
                 id="lastName"
                 name="lastName"
+                placeholder='Dupont'
                 value={formData.lastName}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
@@ -293,32 +290,13 @@ export default function CheckoutItems() {
                 id="email"
                 name="email"
                 value={formData.email}
+                placeholder='exemple@domaine.com'
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                 required
               />
               {formErrors.email && (
                 <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
-              )}
-            </div>
-
-            {/* Téléphone */}
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                Téléphone <span className="text-red-600">*</span>
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                placeholder="06 12 34 56 78"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                required
-              />
-              {formErrors.phone && (
-                <p className="mt-1 text-sm text-red-600">{formErrors.phone}</p>
               )}
             </div>
           </div>

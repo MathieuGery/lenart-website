@@ -37,6 +37,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
 
       return {
         name: object.name,
+        bucket_name: params.slug,
         url: signedUrl,
         size: object.size,
         lastModified: object.lastModified,

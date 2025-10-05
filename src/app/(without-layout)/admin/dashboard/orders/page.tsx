@@ -5,38 +5,6 @@ import OrdersTable from '@/components/OrdersTable';
 
 export const dynamic = 'force-dynamic';
 
-// Fonction pour obtenir la classe de badge selon le statut
-function getStatusBadgeClass(status: string): string {
-  switch (status) {
-    case 'waiting-for-payment':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    case 'pending':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
-    case 'canceled':
-      return 'bg-red-100 text-red-800 border-red-200';
-    case 'completed':
-      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-    default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
-  }
-}
-
-// Fonction pour obtenir le libellé du statut
-function getStatusLabel(status: string): string {
-  switch (status) {
-    case 'waiting-for-payment':
-      return 'En attente de paiement';
-    case 'pending':
-      return 'En cours de traitement';
-    case 'canceled':
-      return 'Annulée';
-    case 'completed':
-      return 'Terminée';
-    default:
-      return status;
-  }
-}
-
 // Page principale pour la gestion des commandes
 export default async function OrdersPage() {
   // Vérification côté serveur : seul un admin peut accéder à cette page

@@ -26,6 +26,7 @@ type OrderDetails = {
   items: Array<{
     id: string
     image_name: string
+    bucket_name: string
     image_url?: string
   }>
 }
@@ -58,7 +59,7 @@ export async function getOrderDetails(orderNumber: string): Promise<{
     // Récupérer les items de la commande
     const { data: orderItems, error: itemsError } = await supabase
       .from('order_items')
-      .select('id, image_name')
+      .select('id, image_name, bucket_name')
       .eq('order_id', orderData.id)
 
     if (itemsError) {
@@ -75,7 +76,7 @@ export async function getOrderDetails(orderNumber: string): Promise<{
         try {
           // Générer l'URL signée directement avec Minio
           const signedUrl = await createPresignedUrlToDownload({
-            bucketName: 'images', // Ajustez selon votre configuration
+            bucketName: item.bucket_name, // Ajustez selon votre configuration
             fileName: item.image_name,
             expiry: 3600 // URL valide pendant 1h
           })

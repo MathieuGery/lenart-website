@@ -9,6 +9,7 @@ import { supabase } from '@/utils/supabase'
 // Type d'image
 type ShopImage = {
   name: string
+  bucket_name: string
   url: string
   size: number
   lastModified: Date

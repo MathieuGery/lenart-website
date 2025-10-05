@@ -102,10 +102,12 @@ export async function getOrderById(orderId: string): Promise<{ order: Order | nu
       .select(`
         id,
         order_id,
-        image_name
+        image_name,
+        bucket_name
       `)
       .eq('order_id', orderId);
 
+    console.log('Items récupérés pour la commande:', items);
     if (itemsError) {
       return { order, items: [], error: itemsError.message };
     }
@@ -116,11 +118,11 @@ export async function getOrderById(orderId: string): Promise<{ order: Order | nu
       // Essayer de générer une URL publique pour l'image si elle existe dans le stockage
       try {
         const signedUrl = await createPresignedUrlToDownload({
-            bucketName: 'images', // Ajustez selon votre configuration
+            bucketName: item.bucket_name, // Ajustez selon votre configuration
             fileName: item.image_name,
             expiry: 3600 // URL valide pendant 1h
           })
-
+        console.log('URL signée générée:', signedUrl);
         return {
           ...item,
           image_url: signedUrl || undefined

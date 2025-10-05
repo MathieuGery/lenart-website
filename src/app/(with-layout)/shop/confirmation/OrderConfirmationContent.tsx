@@ -193,7 +193,7 @@ export default function OrderConfirmationContent() {
             </div>
           </div>
         </div>
-        
+
         {/* Détails de la formule et prix */}
         <div className="border-b py-4 my-4">
           <h3 className="text-lg font-medium text-gray-900 mb-3">Détails de la formule</h3>
