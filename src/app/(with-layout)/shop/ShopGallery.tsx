@@ -416,7 +416,7 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
         </div>
       )}
 
-      <FadeInStagger>
+      <div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {images.length === 0 ? (
             <div className="col-span-full py-10 text-center">
@@ -428,7 +428,7 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
               </p>
             </div>) : <></>}
           {images.map((image, index) => (
-            <FadeIn key={image.name}>
+            <div key={image.name}>
               <div
                 className="group relative overflow-hidden rounded-lg cursor-pointer"
                 onClick={() => setSelectedImageIndex(index)}
@@ -464,10 +464,10 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
                   </h3>
                 </div>
               </div>
-            </FadeIn>
+            </div>
           ))}
         </div>
-      </FadeInStagger>
+      </div>
 
       {/* Modal pour afficher l'image en grand */}
       {selectedImage && (
