@@ -217,7 +217,7 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
         setFormules(enrichedFormules);
 
         // Vérifier s'il y a une formule sauvegardée à restaurer
-        let tempFormuleId = null
+        let tempFormuleId: string | null = null
         if (typeof window !== 'undefined') {
           tempFormuleId = sessionStorage.getItem('temp-selected-formule-id')
         }
