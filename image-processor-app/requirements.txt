@@ -1,0 +1,5 @@
+PyQt6>=6.5.0
+rawpy>=0.19.0
+Pillow>=10.0.0
+numpy>=1.21.0
+PyInstaller>=6.0.0
