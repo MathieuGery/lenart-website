@@ -22,7 +22,8 @@ import Link from 'next/link'
 const navigation = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon },
   { name: 'Commandes', href: '/admin/dashboard/orders', icon: DocumentDuplicateIcon },
-  { name: 'Codes promo', href: '/admin/dashboard/promo-codes', icon: PercentBadgeIcon },
+  { name: 'Collections', href: '/admin/dashboard/buckets', icon: FolderIcon },
+  { name: 'Codes promo', href: '/admin/dashboard/promo-codes', icon: PercentBadgeIcon }
 ]
 
 function classNames(...classes: string[]) {

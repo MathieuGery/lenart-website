@@ -173,9 +173,12 @@ export default function CheckoutItems() {
       <div className="text-center py-12">
         <h2 className="text-2xl font-medium text-gray-900 mb-4">Votre panier est vide</h2>
         <p className="text-gray-500 mb-6">Vous n'avez pas encore sélectionné d'images.</p>
-        <Button href="/shop" className="px-6 py-3 rounded-md transition-colors">
+        <button 
+          onClick={() => router.back()}
+          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors"
+        >
           Retour à la galerie
-        </Button>
+        </button>
       </div>
     )
   }
@@ -185,15 +188,15 @@ export default function CheckoutItems() {
       <div className="py-8 px-10">
         {/* Bouton de retour vers la galerie */}
         <div className="mb-8">
-          <a
-            href="/shop"
+          <button
+            onClick={() => router.back()}
             className="inline-flex items-center text-teal-600 hover:text-teal-800 transition-colors group"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Retour à la galerie
-          </a>
+          </button>
         </div>
 
         <h2 className="text-2xl font-medium text-gray-900 mb-8">Votre sélection ({cartItems.length} images)</h2>

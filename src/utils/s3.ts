@@ -56,3 +56,21 @@ export async function listBuckets(): Promise<{
     throw new Error(`Erreur lors de la récupération des buckets: ${error}`)
   }
 }
+
+export async function createBucket(bucketName: string): Promise<boolean> {
+  try {
+    await s3Client.makeBucket(bucketName, '')
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
+export async function removeBucket(bucketName: string): Promise<boolean> {
+  try {
+    await s3Client.removeBucket(bucketName)
+    return true
+  } catch (error) {
+    return false
+  }
+}

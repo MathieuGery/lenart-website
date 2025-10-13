@@ -118,10 +118,10 @@ export async function getOrderById(orderId: string): Promise<{ order: Order | nu
       // Essayer de générer une URL publique pour l'image si elle existe dans le stockage
       try {
         const signedUrl = await createPresignedUrlToDownload({
-            bucketName: item.bucket_name, // Ajustez selon votre configuration
-            fileName: item.image_name,
-            expiry: 3600 // URL valide pendant 1h
-          })
+          bucketName: item.bucket_name, // Ajustez selon votre configuration
+          fileName: item.image_name,
+          expiry: 3600 // URL valide pendant 1h
+        })
         console.log('URL signée générée:', signedUrl);
         return {
           ...item,
@@ -174,16 +174,16 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
 /**
  * Récupère les statistiques des commandes
  */
-export async function getOrdersStats(): Promise<{ 
-  total: number, 
-  byStatus: Record<string, number>, 
-  byFormule: Record<string, number>, 
+export async function getOrdersStats(): Promise<{
+  total: number,
+  byStatus: Record<string, number>,
+  byFormule: Record<string, number>,
   totalAmount: number,
-  error: string | null 
+  error: string | null
 }> {
   try {
     const supabase = getSupabaseServerClient();
-    
+
     // Récupérer toutes les commandes avec leur montant et formule
     const { data: orders, error } = await supabase
       .from('orders')
@@ -204,12 +204,12 @@ export async function getOrdersStats(): Promise<{
     const byStatus: Record<string, number> = {};
     // Calculer le nombre de commandes par formule
     const byFormule: Record<string, number> = {};
-    
+
     orders.forEach(order => {
       // Comptage par statut
       const status = order.status;
       byStatus[status] = (byStatus[status] || 0) + 1;
-      
+
       // Comptage par formule
       const formule = order.formule_name;
       if (formule) {
@@ -220,12 +220,12 @@ export async function getOrdersStats(): Promise<{
     return { total, byStatus, byFormule, totalAmount, error: null };
   } catch (error) {
     console.error('Erreur inattendue lors de la récupération des statistiques de commandes:', error);
-    return { 
-      total: 0, 
+    return {
+      total: 0,
       byStatus: {},
       byFormule: {},
-      totalAmount: 0, 
-      error: error instanceof Error ? error.message : 'Erreur inconnue' 
+      totalAmount: 0,
+      error: error instanceof Error ? error.message : 'Erreur inconnue'
     };
   }
 }
@@ -250,7 +250,7 @@ export type RecentOrder = {
 export async function getRecentOrders(): Promise<{ orders: RecentOrder[], error: string | null }> {
   try {
     const supabase = getSupabaseServerClient();
-    
+
     // Récupérer les 5 commandes les plus récentes
     const { data: orders, error } = await supabase
       .from('orders')
@@ -275,9 +275,9 @@ export async function getRecentOrders(): Promise<{ orders: RecentOrder[], error:
     return { orders: orders as RecentOrder[], error: null };
   } catch (error) {
     console.error('Erreur inattendue lors de la récupération des commandes récentes:', error);
-    return { 
-      orders: [], 
-      error: error instanceof Error ? error.message : 'Erreur inconnue' 
+    return {
+      orders: [],
+      error: error instanceof Error ? error.message : 'Erreur inconnue'
     };
   }
 }

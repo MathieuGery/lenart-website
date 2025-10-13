@@ -1,6 +1,8 @@
 import { getSupabaseServerClient } from "@/utils/supabase-ssr";
 import { redirect } from "next/navigation";
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminDashboardPage() {
   // Vérification côté serveur : seul un admin peut accéder à cette page
   try {
@@ -24,7 +26,8 @@ export default async function AdminDashboardPage() {
       redirect('/admin');
     }
   } catch (error) {
-    console.error('Error fetching user or role:', error);
+    console.error('Erreur lors de la vérification de l\'utilisateur:', error);
+    redirect('/admin');
   }
 
   return (

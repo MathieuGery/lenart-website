@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { FadeIn, FadeInStagger } from '@/components/FadeIn'
 import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, ShoppingCartIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase'
@@ -36,6 +35,7 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
   // États existants
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
   const [cartItems, setCartItems] = useState<ShopImage[]>([])
+  const [isHydrated, setIsHydrated] = useState(false)
   const router = useRouter()
 
   // Nouveaux états pour le pricing
@@ -117,23 +117,68 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
 
   // Charger les données du localStorage côté client uniquement
   useEffect(() => {
+    // Marquer le composant comme hydraté
+    setIsHydrated(true)
+
+    // Vérifier qu'on est côté client
+    if (typeof window === 'undefined') return;
+
     const savedCartItems = localStorage.getItem(CART_STORAGE_KEY)
+    const savedTotalPrice = localStorage.getItem('shop-cart-total-price')
+    const savedFormule = localStorage.getItem('shop-cart-formule')
+
+    // Charger le panier s'il existe
     if (savedCartItems) {
       try {
-        setCartItems(JSON.parse(savedCartItems))
+        const parsedCartItems = JSON.parse(savedCartItems)
+        // Vérifier que les items du panier correspondent aux images de cette collection
+        const validCartItems = parsedCartItems.filter((item: ShopImage) =>
+          images.some(img => img.name === item.name)
+        )
+        setCartItems(validCartItems)
+
+        // Si des items ont été filtrés, mettre à jour le localStorage
+        if (validCartItems.length !== parsedCartItems.length) {
+          localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(validCartItems))
+        }
       } catch (error) {
         console.error('Erreur lors du chargement du panier:', error)
-        localStorage.removeItem(CART_STORAGE_KEY) // Nettoyer les données corrompues
+        localStorage.removeItem(CART_STORAGE_KEY)
       }
     }
-  }, [])
+
+    // Charger le prix total s'il existe
+    if (savedTotalPrice) {
+      try {
+        const price = parseFloat(savedTotalPrice)
+        if (!isNaN(price)) {
+          setTotalPrice(price)
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement du prix:', error)
+        localStorage.removeItem('shop-cart-total-price')
+      }
+    }
+
+    // Charger la formule sélectionnée s'il existe (on la traitera après avoir chargé les formules)
+    if (savedFormule) {
+      try {
+        const formule = JSON.parse(savedFormule)
+        // On stocke temporairement l'ID de la formule pour la sélectionner plus tard
+        sessionStorage.setItem('temp-selected-formule-id', formule.id)
+      } catch (error) {
+        console.error('Erreur lors du chargement de la formule:', error)
+        localStorage.removeItem('shop-cart-formule')
+      }
+    }
+  }, [images])
 
   // Sauvegarder le panier dans localStorage quand il change
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && isHydrated) {
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems))
     }
-  }, [cartItems])
+  }, [cartItems, isHydrated])
 
   // Récupérer les formules depuis Supabase
   useEffect(() => {
@@ -171,10 +216,36 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
 
         setFormules(enrichedFormules);
 
-        // Sélectionner automatiquement la formule la plus adaptée au nombre de photos
-        if (cartItems.length > 0 && enrichedFormules.length > 0) {
-          const bestFormule = findBestFormule(enrichedFormules, cartItems.length);
-          setSelectedFormule(bestFormule);
+        // Vérifier s'il y a une formule sauvegardée à restaurer
+        let tempFormuleId = null
+        if (typeof window !== 'undefined') {
+          tempFormuleId = sessionStorage.getItem('temp-selected-formule-id')
+        }
+        let formuleToSelect = null
+
+        if (tempFormuleId && enrichedFormules.length > 0) {
+          // Essayer de trouver la formule sauvegardée
+          formuleToSelect = enrichedFormules.find(f => f.id === tempFormuleId)
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('temp-selected-formule-id')
+          }
+        }
+
+        // Si pas de formule sauvegardée ou introuvable, sélectionner automatiquement la meilleure
+        if (!formuleToSelect && cartItems.length > 0 && enrichedFormules.length > 0) {
+          formuleToSelect = findBestFormule(enrichedFormules, cartItems.length);
+        }
+
+        // Si pas d'items dans le panier mais des formules disponibles, sélectionner la moins chère
+        if (!formuleToSelect && cartItems.length === 0 && enrichedFormules.length > 0) {
+          const nonFeaturedFormules = enrichedFormules.filter(f => !f.is_featured);
+          if (nonFeaturedFormules.length > 0) {
+            formuleToSelect = nonFeaturedFormules.sort((a, b) => a.base_price - b.base_price)[0];
+          }
+        }
+
+        if (formuleToSelect) {
+          setSelectedFormule(formuleToSelect);
         }
       } catch (error) {
         console.error('Erreur lors du chargement des formules:', error)
