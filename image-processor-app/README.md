@@ -78,6 +78,15 @@ dist/
     │   └── Info.plist
 ```
 
+## ☁️ Upload Minio (Optionnel)
+
+Activez l'option "Uploader vers Minio" dans le panneau dédié puis :
+1. Renseignez endpoint (ex: `minio.example.com:9000`), clés et bucket.
+2. Cliquez sur "Tester" pour valider la connexion (création du bucket si absent).
+3. Lancez la conversion : chaque JPEG généré est uploadé dans `YYYY-MM-DD/nom_fichier.jpg`.
+
+En cas d'erreur d'upload, le message apparaît dans le journal à côté du résultat de conversion.
+
 ## 💡 Configuration avancée
 
 ### Personnalisation du build
