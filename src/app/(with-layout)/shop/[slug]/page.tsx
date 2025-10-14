@@ -3,6 +3,8 @@ import { listBucketObjects, createPresignedUrlToDownload } from '@/utils/s3'
 import { Container } from '@/components/Container'
 import { ShopGallery } from '../ShopGallery'
 
+export const revalidate = 3600
+
 export default async function Page({ params }: { params: { slug: string } }) {
   let objects
 
