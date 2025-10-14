@@ -74,3 +74,12 @@ export async function removeBucket(bucketName: string): Promise<boolean> {
     return false
   }
 }
+
+export async function removeObject(bucketName: string, objectName: string): Promise<boolean> {
+  try {
+    await s3Client.removeObject(bucketName, objectName)
+    return true
+  } catch (error) {
+    return false
+  }
+}

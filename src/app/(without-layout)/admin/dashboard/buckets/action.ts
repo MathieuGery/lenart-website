@@ -1,6 +1,6 @@
 'use server'
 
-import { createBucket as createS3Bucket, removeBucket, listBuckets } from '@/utils/s3';
+import { createBucket as createS3Bucket, removeBucket, listBuckets, listBucketObjects } from '@/utils/s3';
 
 export async function createBucket(bucketName: string) {
   try {
@@ -30,6 +30,14 @@ export async function createBucket(bucketName: string) {
 
 export async function deleteBucket(bucketName: string) {
   try {
+    // Check if bucket has objects before deletion
+    const objects = await listBucketObjects(bucketName);
+    if (objects.length > 0) {
+      return {
+        success: false,
+        error: 'Impossible de supprimer la collection car elle contient des objets. Veuillez d\'abord supprimer tous les objets.'
+      };
+    }
     await removeBucket(bucketName);
 
     return {
@@ -40,7 +48,7 @@ export async function deleteBucket(bucketName: string) {
     console.error('Erreur lors de la suppression du bucket:', error);
     return {
       success: false,
-      error: 'Erreur lors de la suppression de la collection. Assurez-vous que la collection est vide.'
+      error: 'Erreur lors de la suppression de la collection.'
     };
   }
 }

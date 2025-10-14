@@ -180,14 +180,22 @@ export default function BucketManagement({ initialBuckets }: BucketManagementPro
 
                 {/* Lien vers la boutique */}
                 <div className="mt-4 pt-4 border-t border-gray-100">
-                  <a
-                    href={`/shop/${bucket.name}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-neutral-700 hover:text-neutral-900 font-medium"
-                  >
-                    Voir dans la boutique →
-                  </a>
+                  <div className="flex flex-col gap-1">
+                    <a
+                      href={`/shop/${bucket.name}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-neutral-700 hover:text-neutral-900 font-medium"
+                    >
+                      Voir dans la boutique →
+                    </a>
+                    <a
+                      href={`/admin/dashboard/buckets/${bucket.name}`}
+                      className="text-sm text-teal-600 hover:text-teal-800 font-medium"
+                    >
+                      Gérer les fichiers →
+                    </a>
+                  </div>
                 </div>
               </div>
             ))}
