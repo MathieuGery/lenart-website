@@ -43,7 +43,6 @@ export async function getGalleriesAmz(): Promise<any> {
 }
 
 export async function createGallery(formData: FormData) {
-  console.log('oskour', formData)
   const admin = await assertAdmin()
   if (!admin) return { ok: false, error: 'Non autorisé' }
   const title = sanitizeString(formData.get('title'))
