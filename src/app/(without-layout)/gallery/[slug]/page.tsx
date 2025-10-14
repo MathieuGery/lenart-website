@@ -50,7 +50,7 @@ export default async function GalleryAmzId({ params }: { params: { slug: string 
                     <dd className="text-sm text-gray-500">{session.date}</dd>
                     <dt className="sr-only">Role</dt>
                     <dd className="mt-3">
-                      <Link href={session.link}>
+                      <Link href={session.link || ''}>
                         <button
                           type="button"
                           className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"

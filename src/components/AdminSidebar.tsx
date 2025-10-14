@@ -6,16 +6,13 @@ import { Fragment } from 'react'
 import { usePathname } from 'next/navigation'
 import {
   Bars3Icon,
-  CalendarIcon,
-  ChartPieIcon,
   DocumentDuplicateIcon,
   FolderIcon,
   HomeIcon,
-  PhotoIcon,
   UserIcon,
-  CogIcon,
   XMarkIcon,
   PercentBadgeIcon,
+  PhotoIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 
@@ -23,6 +20,7 @@ const navigation = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon },
   { name: 'Commandes', href: '/admin/dashboard/orders', icon: DocumentDuplicateIcon },
   { name: 'Collections', href: '/admin/dashboard/buckets', icon: FolderIcon },
+  { name: 'Galeries', href: '/admin/dashboard/galleries', icon: PhotoIcon },
   { name: 'Codes promo', href: '/admin/dashboard/promo-codes', icon: PercentBadgeIcon }
 ]
 
