@@ -5,7 +5,7 @@ import { FadeIn, FadeInStagger } from '@/components/FadeIn'
 import { Border } from '@/components/Border'
 import Link from 'next/link'
 
-export const revalidate = 3600
+export const revalidate = 120
 
 export default async function Shop() {
   const buckets = await listBuckets()
