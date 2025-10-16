@@ -1,9 +1,11 @@
 import { getSupabaseServerClient } from "@/utils/supabase-ssr";
 import { redirect } from "next/navigation";
+import { getPromoCodes } from './action';
+import PromoCodeManagement from './PromoCodeManagement';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminDashboardPage() {
+export default async function PromoCodesPage() {
   // Vérification côté serveur : seul un admin peut accéder à cette page
   try {
     const supabase = getSupabaseServerClient();
@@ -25,15 +27,24 @@ export default async function AdminDashboardPage() {
     if (!isAdmin) {
       redirect('/admin');
     }
+
+    // Récupérer les codes promo
+    const { data: promoCodes, error } = await getPromoCodes();
+
+    if (error) {
+      console.error('Erreur lors de la récupération des codes promo:', error);
+      return (
+        <div className="p-6">
+          <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded">
+            Erreur lors du chargement des codes promo: {error}
+          </div>
+        </div>
+      );
+    }
+
+    return <PromoCodeManagement initialPromoCodes={promoCodes || []} />;
   } catch (error) {
     console.error('Erreur lors de la vérification de l\'utilisateur:', error);
     redirect('/admin');
   }
-
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
-      <h1 className="text-2xl font-bold">Promo Code Management</h1>
-      <p className="mt-4">Manage your promo codes here.</p>
-    </div>
-  );
 }
