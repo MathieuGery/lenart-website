@@ -1,7 +1,7 @@
 import { PageIntro } from '@/components/PageIntro'
 import { listBucketObjects, createPresignedUrlToDownload } from '@/utils/s3'
 import { Container } from '@/components/Container'
-import { ShopGallery } from '../ShopGallery'
+import { ShopGallery } from './ShopGallery'
 
 export const revalidate = 120
 

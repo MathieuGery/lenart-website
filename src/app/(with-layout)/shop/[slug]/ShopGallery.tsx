@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, ShoppingCartIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, ShoppingCartIcon, CheckCircleIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase'
 
@@ -36,6 +36,7 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
   const [cartItems, setCartItems] = useState<ShopImage[]>([])
   const [isHydrated, setIsHydrated] = useState(false)
+  const [isCartExpanded, setIsCartExpanded] = useState(true) // Nouvel état pour contrôler l'affichage du panier
   const router = useRouter()
 
   // Nouveaux états pour le pricing
@@ -374,117 +375,145 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
     <>
       {/* Panier flottant modifié pour afficher les formules et prix */}
       {cartItems.length > 0 && (
-        <div className="fixed bottom-6 right-6 z-40 bg-white rounded-lg shadow-lg p-4 max-w-sm w-full">
-          <div className="flex justify-between items-center mb-3">
+        <div className="fixed bottom-6 right-6 z-40 bg-white rounded-lg shadow-lg max-w-sm w-full transition-all duration-300">
+          {/* En-tête du panier avec bouton pour replier/déplier */}
+          <div className="flex justify-between items-center p-4 border-b cursor-pointer md:cursor-default"
+               onClick={() => setIsCartExpanded(!isCartExpanded)}>
             <div className="flex items-center">
               <ShoppingCartIcon className="h-5 w-5 text-teal-600 mr-2" />
               <h3 className="font-medium">Votre sélection ({cartItems.length})</h3>
             </div>
-            <button
-              className="text-gray-500 hover:text-gray-700"
-              onClick={() => setCartItems([])}
-            >
-              Vider
-            </button>
-          </div>
-
-          {/* Sélection des photos */}
-          <div className="max-h-32 overflow-y-auto mb-3 border-b pb-3">
-            {cartItems.map(item => (
-              <div key={item.name} className="flex items-center justify-between py-1">
-                <span className="text-sm truncate" style={{ maxWidth: '180px' }}>
-                  {item.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ")}
-                </span>
-                <button
-                  className="text-red-500 text-xs hover:text-red-700"
-                  onClick={() => toggleCartItem(item)}
-                >
-                  Retirer
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Sélection de formule */}
-          {!isLoadingPricing && formules.length > 0 && (
-            <div className="mb-4">
-              <label htmlFor="formule-select" className="block text-sm font-medium text-gray-700 mb-1">
-                Choisissez votre formule :
-              </label>
-              <select
-                id="formule-select"
-                value={selectedFormule?.id || ''}
-                onChange={(e) => {
-                  const selected = formules.find(f => f.id === e.target.value);
-                  if (selected) handleFormuleChange(selected);
-                }}
-                className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-teal-500 focus:border-teal-500"
-              >
-                <option value="" disabled>Sélectionnez une formule</option>
-                {formules
-                  .filter(f => !f.is_featured)
-                  .map(formule => (
-                    <option
-                      key={formule.id}
-                      value={formule.id}
-                      disabled={formule.is_tour_complete === false &&
-                        cartItems.length > formule.digital_photos_count &&
-                        formule.extra_photo_price === null}
-                    >
-                      {formule.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-          )}
-
-          {/* Formule sélectionnée et détails */}
-          {selectedFormule && (
-            <div className="mb-3 bg-gray-50 p-3 rounded-md">
-              <h4 className="font-medium text-sm">{selectedFormule.name}</h4>
-              <p className="text-xs text-gray-600 mb-2">{selectedFormule.description}</p>
-
-              <ul className="text-xs space-y-1 mb-3">
-                {selectedFormule.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start">
-                    <CheckCircleIcon className="h-4 w-4 text-teal-600 mr-1 flex-shrink-0 mt-0.5" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* Affichage du détail des prix */}
-              <div className="border-t border-gray-200 pt-2 mt-2">
-                <div className="flex justify-between text-xs mb-1">
-                  <span>Prix de base:</span>
-                  <span>{selectedFormule.base_price.toFixed(2)}€</span>
-                </div>
-
-                {/* Photos supplémentaires si applicable */}
-                {selectedFormule.extra_photo_price && (
-                  <div className="flex justify-between text-xs mb-1">
-                    <span>
-                      {cartItems.length - selectedFormule.digital_photos_count} photo(s) supplémentaire(s):
-                    </span>
-                    <span>{selectedFormule.extra_photo_price * (cartItems.length - selectedFormule.digital_photos_count)}€</span>
-                  </div>
+            <div className="flex items-center space-x-2">
+              {/* Icône pour replier/déplier sur mobile */}
+              <button className="md:hidden text-gray-500">
+                {isCartExpanded ? (
+                  <ChevronDownIcon className="h-5 w-5" />
+                ) : (
+                  <ChevronUpIcon className="h-5 w-5" />
                 )}
+              </button>
+            </div>
+          </div>
 
-                <div className="flex justify-between font-medium text-sm text-teal-700 mt-1">
-                  <span>Total:</span>
-                  <span>{totalPrice.toFixed(2)}€</span>
+          {/* Contenu du panier - affiché seulement si étendu */}
+          {isCartExpanded && (
+            <div className="p-4">
+              {/* Sélection des photos */}
+              <div className="mb-3">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-sm font-medium text-gray-700">Photos sélectionnées</h4>
+                  <button
+                    className="text-red-500 hover:text-red-700 text-xs font-medium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCartItems([]);
+                    }}
+                  >
+                    Vider tout
+                  </button>
+                </div>
+                <div className="max-h-32 overflow-y-auto border-b pb-3">
+                  {cartItems.map(item => (
+                    <div key={item.name} className="flex items-center justify-between py-1">
+                      <span className="text-sm truncate" style={{ maxWidth: '180px' }}>
+                        {item.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ")}
+                      </span>
+                      <button
+                        className="text-red-500 text-xs hover:text-red-700"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleCartItem(item);
+                        }}
+                      >
+                        Retirer
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
+
+              {/* Sélection de formule */}
+              {!isLoadingPricing && formules.length > 0 && (
+                <div className="mb-4">
+                  <label htmlFor="formule-select" className="block text-sm font-medium text-gray-700 mb-1">
+                    Choisissez votre formule :
+                  </label>
+                  <select
+                    id="formule-select"
+                    value={selectedFormule?.id || ''}
+                    onChange={(e) => {
+                      const selected = formules.find(f => f.id === e.target.value);
+                      if (selected) handleFormuleChange(selected);
+                    }}
+                    className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-teal-500 focus:border-teal-500"
+                  >
+                    <option value="" disabled>Sélectionnez une formule</option>
+                    {formules
+                      .filter(f => !f.is_featured)
+                      .map(formule => (
+                        <option
+                          key={formule.id}
+                          value={formule.id}
+                          disabled={formule.is_tour_complete === false &&
+                            cartItems.length > formule.digital_photos_count &&
+                            formule.extra_photo_price === null}
+                        >
+                          {formule.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Formule sélectionnée et détails */}
+              {selectedFormule && (
+                <div className="mb-3 bg-gray-50 p-3 rounded-md">
+                  <h4 className="font-medium text-sm">{selectedFormule.name}</h4>
+                  <p className="text-xs text-gray-600 mb-2">{selectedFormule.description}</p>
+
+                  <ul className="text-xs space-y-1 mb-3">
+                    {selectedFormule.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-start">
+                        <CheckCircleIcon className="h-4 w-4 text-teal-600 mr-1 flex-shrink-0 mt-0.5" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Affichage du détail des prix */}
+                  <div className="border-t border-gray-200 pt-2 mt-2">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span>Prix de base:</span>
+                      <span>{selectedFormule.base_price.toFixed(2)}€</span>
+                    </div>
+
+                    {/* Photos supplémentaires si applicable */}
+                    {selectedFormule.extra_photo_price && (
+                      <div className="flex justify-between text-xs mb-1">
+                        <span>
+                          {cartItems.length - selectedFormule.digital_photos_count} photo(s) supplémentaire(s):
+                        </span>
+                        <span>{selectedFormule.extra_photo_price * (cartItems.length - selectedFormule.digital_photos_count)}€</span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between font-medium text-sm text-teal-700 mt-1">
+                      <span>Total:</span>
+                      <span>{totalPrice.toFixed(2)}€</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <button
+                className="bg-teal-600 text-white w-full py-2 rounded hover:bg-teal-700 transition-colors disabled:opacity-50"
+                onClick={handleCheckout}
+                disabled={isLoadingPricing || !selectedFormule}
+              >
+                {isLoadingPricing ? 'Chargement...' : `Commander pour ${totalPrice.toFixed(2)}€`}
+              </button>
             </div>
           )}
-
-          <button
-            className="bg-teal-600 text-white w-full py-2 rounded hover:bg-teal-700 transition-colors disabled:opacity-50"
-            onClick={handleCheckout}
-            disabled={isLoadingPricing || !selectedFormule}
-          >
-            {isLoadingPricing ? 'Chargement...' : `Commander pour ${totalPrice.toFixed(2)}€`}
-          </button>
         </div>
       )}
 
