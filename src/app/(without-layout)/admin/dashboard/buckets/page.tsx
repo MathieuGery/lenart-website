@@ -3,7 +3,7 @@ import { getSupabaseServerClient } from '@/utils/supabase-ssr';
 import { redirect } from "next/navigation";
 import BucketManagement from './BucketManagement';
 
-export const revalidate = 0;
+export const dynamic = 'force-dynamic';
 
 export default async function BucketsPage() {
   // Vérification côté serveur : seul un admin peut accéder à cette page
