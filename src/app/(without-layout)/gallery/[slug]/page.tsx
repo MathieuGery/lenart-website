@@ -1,14 +1,15 @@
-import { supabase } from '@/utils/supabase'
 import { PageIntro } from '@/components/PageIntro'
 import { Container } from '@/components/Container'
 import clsx from 'clsx'
 import { FadeIn } from '@/components/FadeIn'
 import Link from 'next/link'
 import { redirect404 } from '@/app/(without-layout)/gallery/action'
+import { getSupabaseServerClient } from '@/utils/supabase-ssr'
 
 export const revalidate = 0
 
 export default async function GalleryAmzId({ params }: { params: { slug: string } }) {
+  const supabase = getSupabaseServerClient()
   const {data: GalleryAmz} = await supabase
     .from('GalleryAmz')
     .select()

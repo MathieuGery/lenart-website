@@ -189,9 +189,42 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                 <p className="text-sm font-medium text-gray-900">{order.extra_photos_count}</p>
               </div>
 
-              <div>
+              {order.promoCode && (
+                <>
+                  <div className="pt-3 border-t border-gray-200">
+                    <p className="text-sm text-gray-500">Code promo utilisé</p>
+                    <div className="mt-1">
+                      <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                        {order.promoCode.code}
+                      </div>
+                      {order.promoCode.description && (
+                        <p className="text-xs text-gray-600 mt-1">{order.promoCode.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm text-gray-500">Remise appliquée</p>
+                    <p className="text-sm font-medium text-green-600">
+                      -{order.promoCode.discountAmount.toFixed(2)} € 
+                      <span className="text-xs text-gray-500 ml-1">
+                        ({order.promoCode.type === 'percentage' ? `${order.promoCode.value}%` : `${order.promoCode.value}€`})
+                      </span>
+                    </p>
+                  </div>
+                </>
+              )}
+
+              <div className={order.promoCode ? "pt-3 border-t border-gray-200" : ""}>
                 <p className="text-sm text-gray-500">Prix total</p>
-                <p className="text-lg font-bold text-gray-900">{order.total_price.toFixed(2)} €</p>
+                <div className="flex items-center space-x-2">
+                  {order.promoCode && (
+                    <span className="text-sm text-gray-400 line-through">
+                      {(order.total_price + order.promoCode.discountAmount).toFixed(2)} €
+                    </span>
+                  )}
+                  <p className="text-lg font-bold text-gray-900">{order.total_price.toFixed(2)} €</p>
+                </div>
               </div>
 
               {order.amazon_link && (

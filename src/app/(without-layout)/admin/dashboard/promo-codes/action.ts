@@ -198,45 +198,6 @@ export async function updatePromoCode(id: string, formData: FormData): Promise<{
   }
 }
 
-// Supprimer un code promo
-export async function deletePromoCode(id: string): Promise<{ success: boolean; error?: string }> {
-  try {
-    const supabase = getSupabaseServerClient()
-
-    // Vérifier l'authentification admin
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return { success: false, error: 'Non authentifié' }
-    }
-
-    const { data: adminRole } = await supabase
-      .from('admin_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single()
-
-    if (adminRole?.role !== 'admin') {
-      return { success: false, error: 'Accès non autorisé' }
-    }
-
-    const { error } = await supabase
-      .from('promo_codes')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      console.error('Erreur lors de la suppression du code promo:', error)
-      return { success: false, error: error.message }
-    }
-
-    revalidatePath('/admin/dashboard/promo-codes')
-    return { success: true }
-  } catch (error) {
-    console.error('Erreur:', error)
-    return { success: false, error: 'Erreur interne du serveur' }
-  }
-}
-
 // Basculer le statut actif/inactif d'un code promo
 export async function togglePromoCodeStatus(id: string, isActive: boolean): Promise<{ success: boolean; error?: string }> {
   try {

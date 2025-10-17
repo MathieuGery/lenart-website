@@ -1,4 +1,4 @@
-import { supabase } from '@/utils/supabase'
+import { getSupabaseServerClient } from '@/utils/supabase-ssr'
 import { PageIntro } from '@/components/PageIntro'
 import { Container } from '@/components/Container'
 import clsx from 'clsx'
@@ -15,6 +15,7 @@ function SvgIcon({ svgContent }: { svgContent: string }) {
 }
 
 export const revalidate = 0
+const supabase = getSupabaseServerClient()
 
 export default async function LinkTree() {
   const { data: links } = await supabase

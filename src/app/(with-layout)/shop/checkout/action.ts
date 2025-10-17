@@ -1,6 +1,6 @@
 'use server'
 
-import { supabase } from '@/utils/supabase';
+import { getSupabaseServerClient } from '@/utils/supabase-ssr';
 
 type FormData = {
   firstName: string;
@@ -23,6 +23,125 @@ type ShopImage = {
   size: number;
   lastModified: Date;
 };
+
+// Types pour les codes promo
+type PromoCode = {
+  id: string;
+  code: string;
+  description: string | null;
+  type: 'percentage' | 'fixed_amount';
+  value: number;
+  usage_limit: number | null;
+  usage_count: number;
+  is_active: boolean;
+};
+
+const supabase = getSupabaseServerClient()
+// Valider un code promo côté serveur
+export async function validatePromoCode(code: string, orderAmount: number): Promise<{
+  valid: boolean;
+  error?: string;
+  promoCode?: PromoCode;
+  discountAmount?: number;
+}> {
+  try {
+    const supabase = getSupabaseServerClient();
+
+    // Récupérer le code promo
+    const { data: promoCode, error } = await supabase
+      .from('promo_codes')
+      .select('*')
+      .eq('code', code.toUpperCase())
+      .eq('is_active', true)
+      .single();
+
+    if (error || !promoCode) {
+      return { valid: false, error: 'Code promo invalide ou inexistant' };
+    }
+
+    // Vérifier si le code n'est pas épuisé
+    if (promoCode.usage_limit && promoCode.usage_count >= promoCode.usage_limit) {
+      return { valid: false, error: 'Ce code promo a atteint sa limite d\'utilisation' };
+    }
+
+    // Calculer la remise
+    let discountAmount = 0;
+    if (promoCode.type === 'percentage') {
+      discountAmount = (orderAmount * promoCode.value) / 100;
+    } else {
+      discountAmount = promoCode.value;
+    }
+
+    // Ne pas dépasser le montant de la commande
+    if (discountAmount > orderAmount) {
+      discountAmount = orderAmount;
+    }
+
+    return {
+      valid: true,
+      promoCode,
+      discountAmount: Math.round(discountAmount * 100) / 100 // Arrondir à 2 décimales
+    };
+  } catch (error) {
+    console.error('Erreur lors de la validation du code promo:', error);
+    return { valid: false, error: 'Erreur interne du serveur' };
+  }
+}
+
+// Appliquer un code promo lors de la finalisation de commande
+export async function applyPromoCode(
+  promoCodeId: string,
+  orderId: string,
+  userEmail: string,
+  discountAmount: number
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = getSupabaseServerClient();
+
+    // Récupérer le code promo actuel pour incrémenter son compteur
+    const { data: currentPromo, error: fetchError } = await supabase
+      .from('promo_codes')
+      .select('usage_count')
+      .eq('id', promoCodeId)
+      .single();
+
+    if (fetchError || !currentPromo) {
+      console.error('Erreur lors de la récupération du code promo:', fetchError);
+      return { success: false, error: 'Code promo introuvable' };
+    }
+
+    // Incrémenter le compteur d'utilisation
+    const { error: updateError } = await supabase
+      .from('promo_codes')
+      .update({ usage_count: currentPromo.usage_count + 1 })
+      .eq('id', promoCodeId);
+
+    if (updateError) {
+      console.error('Erreur lors de la mise à jour du compteur:', updateError);
+      return { success: false, error: 'Erreur lors de l\'application du code promo' };
+    }
+
+    // Enregistrer l'utilisation
+    const { error: usageError } = await supabase
+      .from('promo_code_usage')
+      .insert({
+        promo_code_id: promoCodeId,
+        order_id: orderId,
+        user_email: userEmail,
+        discount_amount: discountAmount
+      });
+
+    if (usageError) {
+      console.error('Erreur lors de l\'enregistrement de l\'utilisation:', usageError);
+      return { success: false, error: 'Erreur lors de l\'enregistrement du code promo' };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Erreur lors de l\'application du code promo:', error);
+    return { success: false, error: 'Erreur interne du serveur' };
+  }
+}
 
 /**
  * Génère un numéro de commande unique au format: DATE-SÉQUENTIEL (ex: 230524-0012)
@@ -61,7 +180,12 @@ export async function sendEmailConfirmation(email: string, orderNumber: string, 
   })
 }
 
-export async function saveOrder(formData: FormData, cartItems: ShopImage[], formuleDetails: FormuleDetails) {
+export async function saveOrder(
+  formData: FormData, 
+  cartItems: ShopImage[], 
+  formuleDetails: FormuleDetails,
+  promoCode?: { id: string; discountAmount: number }
+) {
   try {
     // Vérifier que les détails de la formule n'ont pas été modifiés localement
     const { data: formuleFromDB, error: formuleError } = await supabase
@@ -88,7 +212,12 @@ export async function saveOrder(formData: FormData, cartItems: ShopImage[], form
     const orderNumber = await generateOrderNumber();
 
     // Calculer le prix total
-    const totalPrice = formuleFromDB.base_price + (formuleFromDB.extra_photo_price * formuleDetails.extra_photos)
+    let totalPrice = formuleFromDB.base_price + (formuleFromDB.extra_photo_price * formuleDetails.extra_photos);
+    
+    // Appliquer la remise si un code promo est fourni
+    if (promoCode) {
+      totalPrice = Math.max(0, totalPrice - promoCode.discountAmount);
+    }
 
     // Créer une entrée dans la table des commandes
     const { data: order, error: orderError } = await supabase
@@ -100,6 +229,7 @@ export async function saveOrder(formData: FormData, cartItems: ShopImage[], form
         status: 'waiting-for-payment',
         order_number: orderNumber,
         total_price: totalPrice,
+        discount_amount: promoCode?.discountAmount || 0,
         formule_id: formuleDetails.id,
         formule_name: formuleDetails.name,
         base_price: formuleDetails.base_price,
@@ -127,6 +257,21 @@ export async function saveOrder(formData: FormData, cartItems: ShopImage[], form
 
     if (itemsError) {
       throw new Error(`Erreur lors de l'ajout des articles: ${itemsError.message}`);
+    }
+
+    // Appliquer le code promo si fourni
+    if (promoCode) {
+      const applyResult = await applyPromoCode(
+        promoCode.id,
+        order.id,
+        formData.email,
+        promoCode.discountAmount
+      );
+      
+      if (!applyResult.success) {
+        console.error('Erreur lors de l\'application du code promo:', applyResult.error);
+        // On continue quand même la commande, mais on log l'erreur
+      }
     }
 
     // Envoyer email de confirmation

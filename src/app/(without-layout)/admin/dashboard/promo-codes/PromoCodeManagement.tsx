@@ -100,21 +100,6 @@ export default function PromoCodeManagement({ initialPromoCodes }: PromoCodeMana
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce code promo ?')) return
-
-    startTransition(() => {
-      setOptimisticPromoCodes({ type: 'delete', id })
-    })
-
-    const result = await deletePromoCode(id)
-    if (!result.success) {
-      setError(result.error || 'Erreur lors de la suppression')
-    } else {
-      setError(null)
-    }
-  }
-
   const handleToggle = async (id: string, currentStatus: boolean) => {
     const newStatus = !currentStatus
 
@@ -192,7 +177,6 @@ export default function PromoCodeManagement({ initialPromoCodes }: PromoCodeMana
                   <PromoCodeRow
                     promoCode={promoCode}
                     onEdit={() => setEditingId(promoCode.id)}
-                    onDelete={() => handleDelete(promoCode.id)}
                     onToggle={() => handleToggle(promoCode.id, promoCode.is_active)}
                     isExhausted={isExhausted}
                     isPending={isPending}
@@ -361,14 +345,12 @@ function PromoCodeEditRow({
 function PromoCodeRow({
   promoCode,
   onEdit,
-  onDelete,
   onToggle,
   isExhausted,
   isPending
 }: {
   promoCode: PromoCode
   onEdit: () => void
-  onDelete: () => void
   onToggle: () => void
   isExhausted: (limit: number | null, count: number) => boolean
   isPending: boolean
@@ -419,13 +401,6 @@ function PromoCodeRow({
           className="text-neutral-800 hover:text-neutral-900 disabled:opacity-50"
         >
           Modifier
-        </button>
-        <button
-          onClick={onDelete}
-          disabled={isPending}
-          className="text-red-600 hover:text-red-900 disabled:opacity-50"
-        >
-          Supprimer
         </button>
       </td>
     </>

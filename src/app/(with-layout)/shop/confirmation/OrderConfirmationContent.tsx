@@ -264,7 +264,7 @@ export default function OrderConfirmationContent() {
         )}
 
         <div className="mt-8 space-y-4">
-          <Button href="/" className="w-full justify-center">
+          <Button href="/shop" className="w-full justify-center">
             Retour à l'accueil
           </Button>
 

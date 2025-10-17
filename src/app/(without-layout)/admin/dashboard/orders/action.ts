@@ -10,6 +10,7 @@ export type Order = {
   created_at: string;
   status: string;
   total_price: number;
+  discount_amount?: number;
   first_name: string;
   last_name: string;
   email: string;
@@ -19,6 +20,13 @@ export type Order = {
   extra_photos_count: number;
   amazon_link?: string | null;
   items_count?: number;
+  promoCode?: {
+    code: string;
+    description: string | null;
+    type: 'percentage' | 'fixed_amount';
+    value: number;
+    discountAmount: number;
+  } | null;
 }
 
 export type OrderItem = {
@@ -87,6 +95,7 @@ export async function getOrderById(orderId: string): Promise<{ order: Order | nu
         base_price,
         extra_photos_count,
         total_price,
+        discount_amount,
         amazon_link
       `)
       .eq('id', orderId)
@@ -94,6 +103,34 @@ export async function getOrderById(orderId: string): Promise<{ order: Order | nu
 
     if (error) {
       return { order: null, items: [], error: error.message };
+    }
+
+    // Récupérer les informations du code promo utilisé si applicable
+    let promoCodeInfo = null;
+    if (order.discount_amount && order.discount_amount > 0) {
+      const { data: promoUsage, error: promoError } = await supabase
+        .from('promo_code_usage')
+        .select(`
+          discount_amount,
+          promo_codes (
+            code,
+            description,
+            type,
+            value
+          )
+        `)
+        .eq('order_id', orderId)
+        .single();
+
+      if (!promoError && promoUsage) {
+        promoCodeInfo = {
+          code: promoUsage.promo_codes.code,
+          description: promoUsage.promo_codes.description,
+          type: promoUsage.promo_codes.type,
+          value: promoUsage.promo_codes.value,
+          discountAmount: promoUsage.discount_amount
+        };
+      }
     }
 
     // Récupérer les items de la commande
@@ -107,7 +144,6 @@ export async function getOrderById(orderId: string): Promise<{ order: Order | nu
       `)
       .eq('order_id', orderId);
 
-    console.log('Items récupérés pour la commande:', items);
     if (itemsError) {
       return { order, items: [], error: itemsError.message };
     }
@@ -122,7 +158,6 @@ export async function getOrderById(orderId: string): Promise<{ order: Order | nu
           fileName: item.image_name,
           expiry: 3600 // URL valide pendant 1h
         })
-        console.log('URL signée générée:', signedUrl);
         return {
           ...item,
           image_url: signedUrl || undefined
@@ -133,7 +168,7 @@ export async function getOrderById(orderId: string): Promise<{ order: Order | nu
       }
     }));
 
-    return { order, items: itemsWithImages, error: null };
+    return { order: { ...order, promoCode: promoCodeInfo }, items: itemsWithImages, error: null };
   } catch (error) {
     return {
       order: null,

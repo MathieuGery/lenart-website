@@ -1,6 +1,6 @@
 'use server'
 
-import { supabase } from '@/utils/supabase'
+import { getSupabaseServerClient } from '@/utils/supabase-ssr'
 import { createPresignedUrlToDownload } from '@/utils/s3'
 import { revalidatePath } from 'next/cache'
 
@@ -30,6 +30,8 @@ type OrderDetails = {
     image_url?: string
   }>
 }
+
+const supabase = getSupabaseServerClient()
 
 export async function getOrderDetails(orderNumber: string): Promise<{
   success: boolean

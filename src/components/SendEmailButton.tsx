@@ -38,7 +38,6 @@ export default function SendEmailButton({
     setSuccess('')
 
     try {
-      console.log('Envoi de l\'email pour la commande:', orderId)
       // Appeler notre route API qui elle-même appellera la fonction Edge Supabase
       const response = await fetch(`/api/orders/${orderId}/send-email`, {
         method: 'POST',

@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { FadeIn } from '@/components/FadeIn'
-import { XMarkIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/Button'
-import { saveOrder } from './action'
+import { saveOrder, validatePromoCode } from './action'
 import { useRouter } from 'next/navigation'
 
 // Type pour les images
@@ -39,6 +39,7 @@ export default function CheckoutItems() {
   const [cartItems, setCartItems] = useState<ShopImage[]>([])
   const [formuleDetails, setFormuleDetails] = useState<FormuleDetails | null>(null)
   const [totalPrice, setTotalPrice] = useState<number>(0)
+  const [originalTotalPrice, setOriginalTotalPrice] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [orderSuccess, setOrderSuccess] = useState(false)
@@ -51,6 +52,18 @@ export default function CheckoutItems() {
     lastName: '',
     email: ''
   })
+
+  // États pour le code promo
+  const [promoCode, setPromoCode] = useState('')
+  const [appliedPromo, setAppliedPromo] = useState<{
+    id: string;
+    code: string;
+    discountAmount: number;
+    type: 'percentage' | 'fixed_amount';
+    value: number;
+  } | null>(null)
+  const [promoValidating, setPromoValidating] = useState(false)
+  const [promoError, setPromoError] = useState('')
 
   // État de validité du formulaire
   const [isFormValid, setIsFormValid] = useState(false)
@@ -89,6 +102,48 @@ export default function CheckoutItems() {
     })
   }
 
+  // Valider un code promo
+  const handleValidatePromoCode = async () => {
+    if (!promoCode.trim() || promoValidating) return;
+
+    setPromoValidating(true);
+    setPromoError('');
+
+    try {
+      const result = await validatePromoCode(promoCode.trim(), originalTotalPrice);
+      
+      if (result.valid && result.promoCode && result.discountAmount !== undefined) {
+        setAppliedPromo({
+          id: result.promoCode.id,
+          code: result.promoCode.code,
+          discountAmount: result.discountAmount,
+          type: result.promoCode.type,
+          value: result.promoCode.value
+        });
+        setTotalPrice(Math.max(0, originalTotalPrice - result.discountAmount));
+        setPromoError('');
+      } else {
+        setPromoError(result.error || 'Code promo invalide');
+        setAppliedPromo(null);
+        setTotalPrice(originalTotalPrice);
+      }
+    } catch (error) {
+      setPromoError('Erreur lors de la validation du code promo');
+      setAppliedPromo(null);
+      setTotalPrice(originalTotalPrice);
+    } finally {
+      setPromoValidating(false);
+    }
+  };
+
+  // Supprimer le code promo appliqué
+  const handleRemovePromoCode = () => {
+    setAppliedPromo(null);
+    setPromoCode('');
+    setPromoError('');
+    setTotalPrice(originalTotalPrice);
+  };
+
   // Traitement de la commande
   const handleSubmitOrder = async () => {
     if (!isFormValid || !formuleDetails) return
@@ -97,8 +152,14 @@ export default function CheckoutItems() {
     setOrderError('')
 
     try {
+      // Préparer les données du code promo si applicable
+      const promoData = appliedPromo ? {
+        id: appliedPromo.id,
+        discountAmount: appliedPromo.discountAmount
+      } : undefined;
+
       // Appel de l'action serveur
-      const result = await saveOrder(formData, cartItems, formuleDetails)
+      const result = await saveOrder(formData, cartItems, formuleDetails, promoData)
 
       if (result.success) {
         setOrderSuccess(true)
@@ -147,7 +208,9 @@ export default function CheckoutItems() {
     }
 
     if (savedTotalPrice) {
-      setTotalPrice(parseFloat(savedTotalPrice))
+      const price = parseFloat(savedTotalPrice)
+      setTotalPrice(price)
+      setOriginalTotalPrice(price)
     }
 
     setIsLoading(false)
@@ -175,7 +238,7 @@ export default function CheckoutItems() {
         <p className="text-gray-500 mb-6">Vous n'avez pas encore sélectionné d'images.</p>
         <button 
           onClick={() => router.back()}
-          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors"
+          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-neutral-800 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500 transition-colors"
         >
           Retour à la galerie
         </button>
@@ -190,7 +253,7 @@ export default function CheckoutItems() {
         <div className="mb-8">
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center text-teal-600 hover:text-teal-800 transition-colors group"
+            className="inline-flex items-center text-neutral-600 hover:text-neutral-800 transition-colors group"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -255,7 +318,7 @@ export default function CheckoutItems() {
                 placeholder='Jean'
                 value={formData.firstName}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-700"
                 required
               />
               {formErrors.firstName && (
@@ -275,7 +338,7 @@ export default function CheckoutItems() {
                 placeholder='Dupont'
                 value={formData.lastName}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-700"
                 required
               />
               {formErrors.lastName && (
@@ -295,7 +358,7 @@ export default function CheckoutItems() {
                 value={formData.email}
                 placeholder='exemple@domaine.com'
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-700"
                 required
               />
               {formErrors.email && (
@@ -303,6 +366,59 @@ export default function CheckoutItems() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Section Code Promo */}
+        <div className="mt-8 border-t pt-8">
+          <h3 className="text-xl font-medium mb-6">Code promo</h3>
+          
+          {!appliedPromo ? (
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  placeholder="Entrez votre code promo"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-700"
+                  disabled={promoValidating}
+                />
+                <button
+                  onClick={handleValidatePromoCode}
+                  disabled={!promoCode.trim() || promoValidating}
+                  className="px-4 py-2 text-white rounded-md bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {promoValidating ? 'Validation...' : 'Appliquer'}
+                </button>
+              </div>
+              {promoError && (
+                <p className="mt-2 text-sm text-red-600">{promoError}</p>
+              )}
+            </div>
+          ) : (
+            <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <CheckCircleIcon className="h-5 w-5 text-green-600 mr-2" />
+                  <div>
+                    <p className="font-medium text-green-800">Code promo appliqué : {appliedPromo.code}</p>
+                    <p className="text-sm text-green-600">
+                      Remise de {appliedPromo.type === 'percentage' 
+                        ? `${appliedPromo.value}%` 
+                        : `${appliedPromo.value}€`
+                      } - Économie : {appliedPromo.discountAmount.toFixed(2)}€
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleRemovePromoCode}
+                  className="text-green-600 hover:text-green-800 text-sm font-medium"
+                >
+                  Retirer
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Récapitulatif de commande modifié */}
@@ -325,7 +441,19 @@ export default function CheckoutItems() {
                   </p>
                 )}
 
-                <p className="flex justify-between font-medium text-base">
+                <p className="flex justify-between font-medium text-base pt-1 border-t">
+                  <span>Sous-total:</span>
+                  <span>{originalTotalPrice.toFixed(2)}€</span>
+                </p>
+
+                {appliedPromo && (
+                  <p className="flex justify-between text-green-600">
+                    <span>Remise ({appliedPromo.code}):</span>
+                    <span>-{appliedPromo.discountAmount.toFixed(2)}€</span>
+                  </p>
+                )}
+
+                <p className="flex justify-between font-bold text-lg text-neutral-700 pt-2 border-t">
                   <span>Total:</span>
                   <span>{totalPrice.toFixed(2)}€</span>
                 </p>
