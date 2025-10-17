@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useOptimistic } from 'react'
-import { PromoCode, createPromoCode, updatePromoCode, deletePromoCode, togglePromoCodeStatus } from './action'
+import { PromoCode, createPromoCode, updatePromoCode, togglePromoCodeStatus } from './action'
 
 interface PromoCodeManagementProps {
   initialPromoCodes: PromoCode[]

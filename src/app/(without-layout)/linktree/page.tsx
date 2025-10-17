@@ -15,9 +15,9 @@ function SvgIcon({ svgContent }: { svgContent: string }) {
 }
 
 export const revalidate = 0
-const supabase = getSupabaseServerClient()
 
 export default async function LinkTree() {
+  const supabase = getSupabaseServerClient()
   const { data: links } = await supabase
     .from('LinkTree')
     .select()

@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { getGalleriesAmz, createGallery, updateGallery, deleteGallery } from './action';
 import GalleriesManagment from './GalleriesManagment';
 
-
+export const revalidate = 0
 export interface GalleriesAmz {
   id: number,
   created_at: string,
