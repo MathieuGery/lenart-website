@@ -108,7 +108,7 @@ export async function getOrderById(orderId: string): Promise<{ order: Order | nu
     // Récupérer les informations du code promo utilisé si applicable
     let promoCodeInfo = null;
     if (order.discount_amount && order.discount_amount > 0) {
-      const { data: promoUsage, error: promoError } = await supabase
+      const { data: promoUsage, error: promoError }: { data: { discount_amount: number, promo_codes: { code: string, type: string, value: number, description: string } } | null, error: any } = await supabase
         .from('promo_code_usage')
         .select(`
           discount_amount,
@@ -122,6 +122,7 @@ export async function getOrderById(orderId: string): Promise<{ order: Order | nu
         .eq('order_id', orderId)
         .single();
 
+      console.log(promoUsage)
       if (!promoError && promoUsage) {
         promoCodeInfo = {
           code: promoUsage.promo_codes.code,
