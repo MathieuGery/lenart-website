@@ -9,6 +9,7 @@ import { List, ListItem } from '@/components/List'
 import { SectionIntro } from '@/components/SectionIntro'
 import { StylizedImage } from '@/components/StylizedImage'
 import { Testimonial } from '@/components/Testimonial'
+import { Button } from '@/components/Button'
 import logoBrightPath from '@/images/clients/bright-path/logo-light.svg'
 import logoFamilyFund from '@/images/clients/family-fund/logo-light.svg'
 import logoGreenLife from '@/images/clients/green-life/logo-light.svg'
@@ -19,6 +20,7 @@ import logoPhobiaLight from '@/images/clients/phobia/logo-light.svg'
 import logoUnseal from '@/images/clients/unseal/logo-light.svg'
 import imageLaptop from '@/images/laptop.jpg'
 import { type CaseStudy, loadCaseStudies, type MDXEntry } from '@/lib/mdx'
+import { ArrowRightIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
 
 const clients = [
   ['Phobia', logoPhobiaLight],
@@ -172,6 +174,43 @@ function Services() {
   )
 }
 
+function ShopHighlight() {
+  return (
+    <Container className="mt-16 sm:mt-20">
+      <FadeIn>
+        <div className="relative overflow-hidden rounded-3xl bg-neutral-950 px-8 py-16 sm:px-12 sm:py-20">
+          <div className="absolute -top-12 right-8 hidden sm:block text-white/10">
+            <ShoppingBagIcon className="h-28 w-28" aria-hidden="true" />
+          </div>
+          <div className="max-w-xl text-white">
+            <p className="font-display text-sm uppercase tracking-[0.2em] text-white/70">
+              Boutique en ligne
+            </p>
+            <h2 className="mt-4 font-display text-3xl font-medium sm:text-4xl">
+              Vos photos de concours prêtes à être commandées
+            </h2>
+            <p className="mt-4 text-base text-white/70">
+              Connectez-vous à la boutique, sélectionnez votre événement et retrouvez instantanément toutes les images de votre passage. Téléchargements HD et tirages sont disponibles dès votre commande.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <Button href="/shop" invert>
+                Accéder au shop
+              </Button>
+              <Link
+                href="/gallery-show"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-white/80 transition hover:text-white"
+              >
+                Accéder à la galerie
+                <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </FadeIn>
+    </Container>
+  )
+}
+
 export const metadata: Metadata = {
   description:
     'len-art photographie'
@@ -182,31 +221,41 @@ export default async function Home() {
 
   return (
     <>
-      <Container className="mt-24 sm:mt-32 md:mt-56">
+      {/* <Container className="mt-24 sm:mt-32 md:mt-56">
         <FadeIn className="max-w-3xl">
-          <h1
-            className="font-display text-5xl font-medium tracking-tight text-neutral-950 [text-wrap:balance] sm:text-7xl">
-            Best photos Lenart
+          <h1 className="font-display text-5xl font-medium tracking-tight text-neutral-950 [text-wrap:balance] sm:text-7xl">
+            Retrouvez vos photos de passage en quelques clics
           </h1>
           <p className="mt-6 text-xl text-neutral-600">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ab accusamus amet autem, blanditiis delectus dolor
-            dolorem itaque libero minus necessitatibus nulla officia perferendis perspiciatis porro rerum saepe
-            similique temporibus unde.
+            Choisissez votre concours, parcourez les photos du passage et commandez vos photos en haute définition, prêtes à partager.
           </p>
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Button href="/shop">
+              Voir les photos
+            </Button>
+            <Link
+              href="/process"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-neutral-900 hover:text-neutral-600"
+            >
+              Comment récupérer mes images ?
+              <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
         </FadeIn>
-      </Container>
+      </Container> */}
 
+      <ShopHighlight />
 
       {/* <CaseStudies caseStudies={caseStudies} />
 */}
-      <Testimonial
+      {/* <Testimonial
         className="mt-24 sm:mt-32 lg:mt-40"
         client={{name: 'Trcu machine', logo: logoUnseal}}
       >
         lorem ipsum dolor sit amet, consectetur adipisicing elit. Ab accusamus
       </Testimonial>
 
-      <Services/>
+      <Services/> */}
 
       <ContactSection/>
     </>
