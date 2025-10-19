@@ -12,6 +12,7 @@ export interface PromoCode {
   usage_limit: number | null
   usage_count: number
   is_active: boolean
+  formule_id: string | null // Ajout pour ciblage formule
   created_at: string
   updated_at: string
 }
@@ -23,6 +24,28 @@ export interface PromoCodeFormData {
   value: number
   usage_limit: number | null
   is_active: boolean
+}
+
+export async function getPricingFormules(): Promise<{ data: Array<{id: string, name: string}> | null; error: string | null }> {
+  try {
+    const supabase = getSupabaseServerClient()
+
+    const { data, error } = await supabase
+      .from('pricing_formules')
+      .select('id, name')
+      .eq('is_active', true)
+      .order('name', { ascending: true })
+
+    if (error) {
+      console.error('Erreur lors de la récupération des formules:', error)
+      return { data: null, error: error.message }
+    }
+
+    return { data, error: null }
+  } catch (error) {
+    console.error('Erreur:', error)
+    return { data: null, error: 'Erreur interne du serveur' }
+  }
 }
 
 // Récupérer tous les codes promo
@@ -93,6 +116,7 @@ export async function createPromoCode(formData: FormData): Promise<{ success: bo
       ? parseInt(formData.get('usage_limit') as string)
       : null
     const is_active = formData.get('is_active') === 'on'
+    const formule_id = formData.get('formule_id') as string || null
 
     // Validation basique
     if (!code || !type || !value || value <= 0) {
@@ -111,6 +135,7 @@ export async function createPromoCode(formData: FormData): Promise<{ success: bo
         type,
         value,
         usage_limit,
+        formule_id: formule_id === '' ? null : formule_id,
         is_active
       })
 

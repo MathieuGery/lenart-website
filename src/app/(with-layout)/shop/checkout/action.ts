@@ -38,7 +38,11 @@ type PromoCode = {
 
 const supabase = getSupabaseServerClient()
 // Valider un code promo côté serveur
-export async function validatePromoCode(code: string, orderAmount: number): Promise<{
+export async function validatePromoCode(
+  code: string,
+  orderAmount: number,
+  formuleId?: string
+): Promise<{
   valid: boolean;
   error?: string;
   promoCode?: PromoCode;
@@ -47,7 +51,6 @@ export async function validatePromoCode(code: string, orderAmount: number): Prom
   try {
     const supabase = getSupabaseServerClient();
 
-    // Récupérer le code promo
     const { data: promoCode, error } = await supabase
       .from('promo_codes')
       .select('*')
@@ -57,6 +60,11 @@ export async function validatePromoCode(code: string, orderAmount: number): Prom
 
     if (error || !promoCode) {
       return { valid: false, error: 'Code promo invalide ou inexistant' };
+    }
+
+    // Vérifier la compatibilité avec la formule
+    if (promoCode.formule_id && formuleId && promoCode.formule_id !== formuleId) {
+      return { valid: false, error: 'Ce code promo n\'est pas applicable à la formule sélectionnée' };
     }
 
     // Vérifier si le code n'est pas épuisé
@@ -72,7 +80,6 @@ export async function validatePromoCode(code: string, orderAmount: number): Prom
       discountAmount = promoCode.value;
     }
 
-    // Ne pas dépasser le montant de la commande
     if (discountAmount > orderAmount) {
       discountAmount = orderAmount;
     }
@@ -80,7 +87,7 @@ export async function validatePromoCode(code: string, orderAmount: number): Prom
     return {
       valid: true,
       promoCode,
-      discountAmount: Math.round(discountAmount * 100) / 100 // Arrondir à 2 décimales
+      discountAmount: Math.round(discountAmount * 100) / 100
     };
   } catch (error) {
     console.error('Erreur lors de la validation du code promo:', error);

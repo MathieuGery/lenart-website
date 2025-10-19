@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { FadeIn } from '@/components/FadeIn'
-import { XMarkIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { CheckCircleIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/Button'
 import { saveOrder, validatePromoCode } from './action'
 import { useRouter } from 'next/navigation'
@@ -110,8 +110,12 @@ export default function CheckoutItems() {
     setPromoError('');
 
     try {
-      const result = await validatePromoCode(promoCode.trim(), originalTotalPrice);
-      
+      const result = await validatePromoCode(
+        promoCode.trim(),
+        originalTotalPrice,
+        formuleDetails?.id
+      );
+
       if (result.valid && result.promoCode && result.discountAmount !== undefined) {
         setAppliedPromo({
           id: result.promoCode.id,
