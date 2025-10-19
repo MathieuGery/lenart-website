@@ -14,6 +14,8 @@ type FormuleDetails = {
   base_price: number;
   extra_photos: number;
   extra_photo_price: number;
+  print_details?: string | null;
+  print_photo_count?: number | null;
 };
 
 type ShopImage = {
@@ -22,6 +24,7 @@ type ShopImage = {
   url: string;
   size: number;
   lastModified: Date;
+  to_print?: boolean;
 };
 
 // Types pour les codes promo
@@ -256,6 +259,7 @@ export async function saveOrder(
       order_id: order.id,
       image_name: item.name,
       bucket_name: item.bucket_name,
+      to_print: item.to_print || false,
     }));
 
     const { error: itemsError } = await supabase

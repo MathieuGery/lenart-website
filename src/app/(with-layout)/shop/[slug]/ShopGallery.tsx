@@ -12,6 +12,7 @@ type ShopImage = {
   url: string
   size: number
   lastModified: Date
+  to_print?: boolean
 }
 
 // Type pour les formules de prix
@@ -23,6 +24,7 @@ type PricingFormule = {
   is_featured: boolean
   digital_photos_count: number
   print_details: string | null
+  print_photo_count: number | null
   extra_photo_price: number | null
   is_tour_complete: boolean
   features: string[]
@@ -365,6 +367,8 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
         extra_photos: cartItems.length > selectedFormule.digital_photos_count ?
           cartItems.length - selectedFormule.digital_photos_count : 0,
         extra_photo_price: selectedFormule.extra_photo_price,
+        print_details: selectedFormule.print_details,
+        print_photo_count: selectedFormule.print_photo_count,
       }));
     }
 

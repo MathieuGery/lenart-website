@@ -14,6 +14,7 @@ type ShopImage = {
   url: string
   size: number
   lastModified: Date
+  to_print?: boolean
 }
 
 // Type pour les données du formulaire
@@ -29,6 +30,8 @@ type FormuleDetails = {
   base_price: number
   extra_photos: number
   extra_photo_price: number
+  print_details?: string | null
+  print_photo_count?: number | null
 }
 
 // Clé de stockage localStorage
@@ -203,6 +206,13 @@ export default function CheckoutItems() {
         if (!parsedFormule.id) {
           throw new Error('Formule ID manquant')
         }
+        // S'assurer que print_details et print_photo_count sont présents (pour rétrocompatibilité)
+        if (parsedFormule.print_details === undefined) {
+          parsedFormule.print_details = null
+        }
+        if (parsedFormule.print_photo_count === undefined) {
+          parsedFormule.print_photo_count = null
+        }
         setFormuleDetails(parsedFormule)
       } catch (error) {
         console.error('Erreur lors de la récupération de la formule:', error)
@@ -225,6 +235,31 @@ export default function CheckoutItems() {
     setCartItems(updatedCart)
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(updatedCart))
   }
+
+  // Fonction pour marquer/démarquer une image pour impression
+  const toggleImageToPrint = (imageName: string) => {
+    const currentSelectedCount = cartItems.filter(item => item.to_print).length
+    const maxPrintPhotos = formuleDetails?.print_photo_count || 0
+    
+    const updatedCart = cartItems.map(item => {
+      if (item.name === imageName) {
+        // Si on veut cocher et qu'on a atteint la limite
+        if (!item.to_print && currentSelectedCount >= maxPrintPhotos) {
+          return item // Ne pas modifier
+        }
+        return { ...item, to_print: !item.to_print }
+      }
+      return item
+    })
+    
+    setCartItems(updatedCart)
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(updatedCart))
+  }
+
+  // Vérifier si la formule inclut des impressions
+  const hasImpressions = formuleDetails?.print_details !== null && formuleDetails?.print_details !== undefined && formuleDetails?.print_details !== ''
+  const maxPrintPhotos = formuleDetails?.print_photo_count || 0
+  const currentSelectedForPrint = cartItems.filter(item => item.to_print).length
 
   const emptyCart = () => {
     setCartItems([])
@@ -270,6 +305,25 @@ export default function CheckoutItems() {
 
         {/* Liste des images dans le panier */}
         <FadeIn>
+          {hasImpressions && (
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6">
+              <div className="flex items-start">
+                <svg className="h-5 w-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h4 className="font-medium text-blue-800 mb-1">Sélection pour impression</h4>
+                  <p className="text-sm text-blue-700">
+                    Votre formule inclut des impressions : <strong>{formuleDetails?.print_details}</strong>
+                    <br />
+                    Sélectionnez {maxPrintPhotos} image{maxPrintPhotos > 1 ? 's' : ''} maximum à imprimer 
+                    ({currentSelectedForPrint}/{maxPrintPhotos} sélectionnée{currentSelectedForPrint > 1 ? 's' : ''})
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {cartItems.map((item) => (
               <div key={item.name} className="flex border rounded-lg overflow-hidden relative group border-gray-400 shadow-xl">
@@ -288,6 +342,31 @@ export default function CheckoutItems() {
                       Haute résolution
                     </p>
                   </div>
+                  
+                  {/* Case à cocher pour impression si la formule l'inclut */}
+                  {hasImpressions && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <label className={`flex items-center ${
+                        !item.to_print && currentSelectedForPrint >= maxPrintPhotos 
+                          ? 'cursor-not-allowed opacity-50' 
+                          : 'cursor-pointer'
+                      }`}>
+                        <input
+                          type="checkbox"
+                          checked={item.to_print || false}
+                          onChange={() => toggleImageToPrint(item.name)}
+                          disabled={!item.to_print && currentSelectedForPrint >= maxPrintPhotos}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
+                        />
+                        <span className="ml-2 text-sm text-gray-600">À imprimer</span>
+                      </label>
+                      {!item.to_print && currentSelectedForPrint >= maxPrintPhotos && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Limite atteinte ({maxPrintPhotos} photo{maxPrintPhotos > 1 ? 's' : ''} max)
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Bouton de suppression */}
@@ -467,11 +546,21 @@ export default function CheckoutItems() {
 
           {/* Liste des photos sélectionnées */}
           <div>
-            <h4 className="font-medium mb-2">Photos sélectionnées ({cartItems.length})</h4>
+            <h4 className="font-medium mb-2">
+              Photos sélectionnées ({cartItems.length})
+              {hasImpressions && (
+                <span className="text-sm font-normal text-blue-600 ml-2">
+                  ({cartItems.filter(item => item.to_print).length} à imprimer)
+                </span>
+              )}
+            </h4>
             <div className="grid grid-cols-2 gap-2">
               {cartItems.map(item => (
-                <div key={item.name} className="text-sm truncate">
-                  {item.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ")}
+                <div key={item.name} className="text-sm truncate flex items-center">
+                  <span>{item.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ")}</span>
+                  {hasImpressions && item.to_print && (
+                    <span className="ml-1 text-blue-600" title="À imprimer">🖨️</span>
+                  )}
                 </div>
               ))}
             </div>
