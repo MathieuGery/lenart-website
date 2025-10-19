@@ -58,7 +58,8 @@ export default function PromoCodeManagement({ initialPromoCodes }: PromoCodeMana
       usage_limit: formData.get('usage_limit')
         ? parseInt(formData.get('usage_limit') as string)
         : null,
-      is_active: formData.get('is_active') === 'on'
+      is_active: formData.get('is_active') === 'on',
+      formule_id: null
     }
 
     startTransition(() => {
