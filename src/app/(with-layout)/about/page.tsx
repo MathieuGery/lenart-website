@@ -185,7 +185,10 @@ export default async function About() {
 
   return (
     <>
-      <PageIntro eyebrow="A propos" title="A propos de moi">
+    <PageIntro eyebrow="A propos" title="A propos de moi">
+      ⚠️ Cette page est en cours de construction. Revenez bientôt pour en savoir plus !
+      </PageIntro>
+      {/* <PageIntro eyebrow="A propos" title="A propos de moi">
         <p>
          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Cum eveniet fugiat odio officiis quas, quia ratione sequi sunt ut velit! Debitis deserunt dolorem eaque et fugit officiis perferendis, rem voluptates!
         </p>
