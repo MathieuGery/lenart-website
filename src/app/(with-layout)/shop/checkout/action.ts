@@ -64,7 +64,7 @@ export async function validatePromoCode(
 
     // Vérifier la compatibilité avec la formule
     if (promoCode.formule_id && formuleId && promoCode.formule_id !== formuleId) {
-      return { valid: false, error: 'Ce code promo n\'est pas applicable à la formule sélectionnée' };
+      return { valid: false, error: `Ce code promo n'est pas applicable à la formule sélectionnée${promoCode.description ? ` - ${promoCode.description}` : ''}` };
     }
 
     // Vérifier si le code n'est pas épuisé
