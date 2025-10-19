@@ -176,7 +176,7 @@ export default async function AdminDashboardPage() {
               <div className="rounded-md bg-green-600 p-3 mr-4">
                 <CurrencyEuroIcon className="h-6 w-6 text-white" aria-hidden="true" />
               </div>
-              <h4 className="text-lg font-semibold text-gray-900">Montant total des commandes</h4>
+              <h4 className="text-lg font-semibold text-gray-900">Montant total des commandes (valides)</h4>
             </div>
             <p className="text-3xl font-bold text-gray-900">{totalAmount.toFixed(2)}€</p>
 

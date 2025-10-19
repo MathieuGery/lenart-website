@@ -233,8 +233,10 @@ export async function getOrdersStats(): Promise<{
     // Calculer le nombre total de commandes
     const total = orders.length;
 
-    // Calculer le montant total de toutes les commandes
-    const totalAmount = orders.reduce((sum, order) => sum + (order.total_price || 0), 0);
+    // Calculer le montant total de toutes les commandes (exclure les commandes annulées)
+    const totalAmount = orders
+      .filter(order => order.status !== 'canceled')
+      .reduce((sum, order) => sum + (order.total_price || 0), 0);
 
     // Calculer le nombre de commandes par statut
     const byStatus: Record<string, number> = {};
