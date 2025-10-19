@@ -33,6 +33,7 @@ export type OrderItem = {
   id: string;
   image_name: string;
   image_url?: string;
+  to_print?: boolean;
 }
 
 /**
@@ -141,7 +142,8 @@ export async function getOrderById(orderId: string): Promise<{ order: Order | nu
         id,
         order_id,
         image_name,
-        bucket_name
+        bucket_name,
+        to_print
       `)
       .eq('order_id', orderId);
 

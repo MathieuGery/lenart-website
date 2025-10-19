@@ -245,26 +245,67 @@ export default async function OrderDetailPage({ params }: { params: { id: string
             <h3 className="text-md font-medium text-gray-900 mt-8 mb-4">Photos sélectionnées ({items.length})</h3>
 
             {items.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {items.map((item) => (
-                  <div key={item.id} className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
-                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 p-2 z-10">
-                      <p className="text-xs text-white break-words">
-                        {item.image_name}
-                      </p>
-                    </div>
-                    {item.image_url ? (
-                      <Image
-                        src={item.image_url}
-                        alt={item.image_name}
-                        className="object-cover"
-                        fill
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <span className="text-xs text-gray-500">Image non disponible</span>
+                  <div key={item.id} className="group">
+                    <div className="aspect-square overflow-hidden rounded-lg bg-gray-100 relative border border-gray-200 shadow-sm">
+                      {/* Badge d'impression en haut à droite */}
+                      {item.to_print && (
+                        <div className="absolute top-2 right-2 z-20">
+                          <div className="bg-blue-600 text-white px-2 py-1 rounded-md text-xs font-medium shadow-lg">
+                            🖨️
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Image */}
+                      {item.image_url ? (
+                        <Image
+                          src={item.image_url}
+                          alt={item.image_name}
+                          className="object-cover group-hover:scale-105 transition-transform duration-200"
+                          fill
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <span className="text-sm text-gray-500">Image non disponible</span>
+                        </div>
+                      )}
+                      
+                      {/* Overlay avec nom de fichier */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                          <p className="text-xs text-white font-medium break-words">
+                            {item.image_name}
+                          </p>
+                        </div>
                       </div>
-                    )}
+                    </div>
+                    
+                    {/* Statut en dessous */}
+                    <div className="mt-3 text-center">
+                      <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium ${
+                        item.to_print 
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                          : 'bg-gray-50 text-gray-600 border border-gray-200'
+                      }`}>
+                        {item.to_print ? (
+                          <>
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zM6 9a1 1 0 011-1h6a1 1 0 011 1v4H6V9z" clipRule="evenodd" />
+                            </svg>
+                            À imprimer
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                            Numérique
+                          </>
+                        )}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
