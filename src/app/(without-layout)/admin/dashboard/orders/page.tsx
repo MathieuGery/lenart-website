@@ -2,6 +2,7 @@ import { getOrders } from './action';
 import { getSupabaseServerClient } from '@/utils/supabase-ssr';
 import { redirect } from "next/navigation";
 import OrdersTable from '@/components/OrdersTable';
+import OrdersPageButtons from '@/components/OrdersPageButtons';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,12 +37,17 @@ export default async function OrdersPage() {
   const { orders, error } = await getOrders();
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
+        <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
       <div className="sm:flex sm:items-center sm:justify-between mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Gestion des commandes</h1>
-        <p className="mt-2 text-sm text-gray-700">
-          Liste des commandes passées sur le site
-        </p>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Gestion des commandes</h1>
+          <p className="mt-2 text-sm text-gray-700">
+            Liste des commandes passées sur le site
+          </p>
+        </div>
+        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+          <OrdersPageButtons />
+        </div>
       </div>
 
       {error && (

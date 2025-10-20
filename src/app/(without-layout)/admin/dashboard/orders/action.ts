@@ -285,8 +285,119 @@ export type RecentOrder = {
 }
 
 /**
- * Récupère les commandes récentes (les 5 dernières)
+ * Crée une nouvelle commande manuellement
  */
+export async function createOrder(orderData: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  formule: {
+    id: string;
+    name: string;
+    base_price: number;
+  };
+  status: string;
+  amazonLink?: string | null;
+  selectedPhotos?: {
+    name: string;
+    bucket_name: string;
+    url: string;
+    size: number;
+    lastModified: Date;
+    to_print?: boolean;
+  }[];
+}): Promise<{ success: boolean; orderId?: string; error?: string }> {
+  try {
+    const supabase = getSupabaseServerClient();
+
+    // Générer un numéro de commande unique
+    async function generateOrderNumber() {
+      const today = new Date();
+      const datePrefix = today.getFullYear().toString().slice(-2) +
+        (today.getMonth() + 1).toString().padStart(2, '0') +
+        today.getDate().toString().padStart(2, '0');
+
+      // Récupérer la dernière commande de la journée
+      const { data, error } = await supabase
+        .from('orders')
+        .select('order_number')
+        .like('order_number', `${datePrefix}-%`)
+        .order('order_number', { ascending: false })
+        .limit(1);
+
+      let sequenceNumber = 1;
+
+      if (!error && data && data.length > 0) {
+        const lastNumber = data[0].order_number.split('-')[1];
+        sequenceNumber = parseInt(lastNumber, 10) + 1;
+      }
+
+      const sequence = sequenceNumber.toString().padStart(4, '0');
+      return `${datePrefix}-${sequence}`;
+    }
+
+    const orderNumber = await generateOrderNumber();
+
+    // Créer la commande
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        first_name: orderData.firstName,
+        last_name: orderData.lastName,
+        email: orderData.email,
+        phone: orderData.phone || '',
+        status: orderData.status,
+        order_number: orderNumber,
+        total_price: orderData.formule.base_price,
+        discount_amount: 0,
+        formule_id: orderData.formule.id,
+        formule_name: orderData.formule.name,
+        base_price: orderData.formule.base_price,
+        extra_photos_count: 0,
+        extra_photos_price: 0,
+        amazon_link: orderData.amazonLink,
+        created_at: new Date().toISOString()
+      })
+      .select('id')
+      .single();
+
+    if (orderError) {
+      console.error('Erreur lors de la création de la commande:', orderError);
+      return { success: false, error: orderError.message };
+    }
+
+    // Ajouter les photos sélectionnées si elles existent
+    if (orderData.selectedPhotos && orderData.selectedPhotos.length > 0) {
+      const orderItems = orderData.selectedPhotos.map((photo) => ({
+        order_id: order.id,
+        image_name: photo.name,
+        bucket_name: photo.bucket_name,
+        to_print: photo.to_print || false,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) {
+        console.error('Erreur lors de l\'ajout des photos:', itemsError);
+        return { success: false, error: itemsError.message };
+      }
+    }
+
+    // Réinitialiser le cache
+    revalidatePath('/admin/dashboard/orders');
+
+    return { success: true, orderId: order.id };
+  } catch (error) {
+    console.error('Erreur lors de la création de la commande:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erreur inconnue'
+    };
+  }
+}
 export async function getRecentOrders(): Promise<{ orders: RecentOrder[], error: string | null }> {
   try {
     const supabase = getSupabaseServerClient();
