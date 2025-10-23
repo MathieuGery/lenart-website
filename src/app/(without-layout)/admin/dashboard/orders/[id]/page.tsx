@@ -8,6 +8,7 @@ import Image from 'next/image';
 import StatusUpdateForm from '@/components/StatusUpdateForm';
 import AmazonLinkUpdateForm from '@/components/AmazonLinkUpdateForm';
 import SendEmailButton from '@/components/SendEmailButton';
+import SendEmailOrderAvailable from '@/components/SendEmailOrderAvailable';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,8 @@ function getStatusBadgeClass(status: string): string {
     case 'canceled':
       return 'bg-red-100 text-red-800 border-red-200';
     case 'completed':
+      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+    case 'order-available-at-desk':
       return 'bg-emerald-100 text-emerald-800 border-emerald-200';
     default:
       return 'bg-gray-100 text-gray-800 border-gray-200';
@@ -40,6 +43,8 @@ function getStatusLabel(status: string): string {
       return 'Terminée';
     case 'canceled':
       return 'Annulée';
+    case 'order-available-at-desk':
+      return 'Photos disponibles au club';
     default:
       return status;
   }
@@ -165,6 +170,17 @@ export default async function OrderDetailPage({ params }: { params: { id: string
               amazonLink={order.amazon_link || null}
               formuleName={order.formule_name}
             />
+            <div className="mt-5">
+            <SendEmailOrderAvailable
+              orderId={order.id}
+              orderStatus={order.status}
+              orderNumber={order.order_number}
+              customerName={`${order.first_name} ${order.last_name}`}
+              email={order.email}
+              amazonLink={order.amazon_link || null}
+              formuleName={order.formule_name}
+            />
+            </div>
           </div>
         </div>
 

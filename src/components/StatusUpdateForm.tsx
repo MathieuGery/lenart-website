@@ -55,6 +55,7 @@ export default function StatusUpdateForm({ orderId, currentStatus }: StatusUpdat
         >
           <option value="waiting-for-payment">En attente de paiement</option>
           <option value="pending">En cours de traitement</option>
+          <option value="order-available-at-desk">Photos disponibles au club</option>
           <option value="canceled">Annulée</option>
           <option value="completed">Terminée</option>
         </select>
