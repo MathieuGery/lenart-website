@@ -33,6 +33,41 @@ type PricingFormule = {
 // Clé de stockage localStorage
 const CART_STORAGE_KEY = 'shop-cart-items'
 
+// Composant image avec lazy loading via IntersectionObserver
+function LazyImage({ src, alt, className }: { src: string; alt: string; className: string }) {
+  const imgRef = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    const el = imgRef.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '200px' }
+    )
+
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div ref={imgRef}>
+      {isVisible ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt={alt} className={className} loading="lazy" />
+      ) : (
+        <div className="h-64 w-full bg-gray-200 animate-pulse rounded" />
+      )}
+    </div>
+  )
+}
+
 export function ShopGallery({ images }: { images: ShopImage[] }) {
   // États existants
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
@@ -538,8 +573,7 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
                 className="group relative overflow-hidden rounded-lg cursor-pointer"
                 onClick={() => setSelectedImageIndex(index)}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <LazyImage
                   src={image.url}
                   alt={image.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ")}
                   className="h-64 w-full object-cover transition-transform duration-300 group-hover:scale-105"
