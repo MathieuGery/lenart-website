@@ -64,6 +64,7 @@ export default function CountdownPage() {
           Et c'est parti ! 🎉
         </h1>
         <a
+          href="/shop"
           className="mt-8 rounded-full bg-white px-8 py-3 text-lg font-semibold text-neutral-950 transition hover:bg-neutral-200"
         >
           Accéder au site

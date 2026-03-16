@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, ShoppingCartIcon, CheckCircleIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase'
+import Image from 'next/image'
 
 // Type d'image
 type ShopImage = {
@@ -33,40 +34,7 @@ type PricingFormule = {
 // Clé de stockage localStorage
 const CART_STORAGE_KEY = 'shop-cart-items'
 
-// Composant image avec lazy loading via IntersectionObserver
-function LazyImage({ src, alt, className }: { src: string; alt: string; className: string }) {
-  const imgRef = useRef<HTMLDivElement>(null)
-  const [isVisible, setIsVisible] = useState(false)
 
-  useEffect(() => {
-    const el = imgRef.current
-    if (!el) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-          observer.disconnect()
-        }
-      },
-      { rootMargin: '200px' }
-    )
-
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
-
-  return (
-    <div ref={imgRef}>
-      {isVisible ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt={alt} className={className} loading="lazy" />
-      ) : (
-        <div className="h-64 w-full bg-gray-200 animate-pulse rounded" />
-      )}
-    </div>
-  )
-}
 
 export function ShopGallery({ images }: { images: ShopImage[] }) {
   // États existants
@@ -218,7 +186,7 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
     }
   }, [cartItems, isHydrated])
 
-  // Récupérer les formules depuis Supabase
+  // Récupérer les formules depuis Supabase (une seule fois)
   useEffect(() => {
     async function fetchPricingFormules() {
       setIsLoadingPricing(true)
@@ -259,31 +227,15 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
         if (typeof window !== 'undefined') {
           tempFormuleId = sessionStorage.getItem('temp-selected-formule-id')
         }
-        let formuleToSelect = null
 
         if (tempFormuleId && enrichedFormules.length > 0) {
-          // Essayer de trouver la formule sauvegardée
-          formuleToSelect = enrichedFormules.find(f => f.id === tempFormuleId)
+          const formuleToSelect = enrichedFormules.find(f => f.id === tempFormuleId)
           if (typeof window !== 'undefined') {
             sessionStorage.removeItem('temp-selected-formule-id')
           }
-        }
-
-        // Si pas de formule sauvegardée ou introuvable, sélectionner automatiquement la meilleure
-        if (!formuleToSelect && cartItems.length > 0 && enrichedFormules.length > 0) {
-          formuleToSelect = findBestFormule(enrichedFormules, cartItems.length);
-        }
-
-        // Si pas d'items dans le panier mais des formules disponibles, sélectionner la moins chère
-        if (!formuleToSelect && cartItems.length === 0 && enrichedFormules.length > 0) {
-          const nonFeaturedFormules = enrichedFormules.filter(f => !f.is_featured);
-          if (nonFeaturedFormules.length > 0) {
-            formuleToSelect = nonFeaturedFormules.sort((a, b) => a.base_price - b.base_price)[0];
+          if (formuleToSelect) {
+            setSelectedFormule(formuleToSelect);
           }
-        }
-
-        if (formuleToSelect) {
-          setSelectedFormule(formuleToSelect);
         }
       } catch (error) {
         console.error('Erreur lors du chargement des formules:', error)
@@ -293,7 +245,30 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
     }
 
     fetchPricingFormules();
-  }, [cartItems.length]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sélectionner automatiquement la meilleure formule quand le panier ou les formules changent
+  useEffect(() => {
+    if (formules.length === 0 || isLoadingPricing) return;
+    // Ne pas écraser une formule déjà sélectionnée manuellement par l'utilisateur
+    if (selectedFormule) return;
+
+    let formuleToSelect = null;
+
+    if (cartItems.length > 0) {
+      formuleToSelect = findBestFormule(formules, cartItems.length);
+    } else {
+      const nonFeaturedFormules = formules.filter(f => !f.is_featured);
+      if (nonFeaturedFormules.length > 0) {
+        formuleToSelect = nonFeaturedFormules.sort((a, b) => a.base_price - b.base_price)[0];
+      }
+    }
+
+    if (formuleToSelect) {
+      setSelectedFormule(formuleToSelect);
+    }
+  }, [formules, cartItems.length, isLoadingPricing, selectedFormule]);
 
   // Identifier la meilleure formule en fonction du nombre de photos
   const findBestFormule = (availableFormules: PricingFormule[], photoCount: number) => {
@@ -570,13 +545,15 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
           {images.map((image, index) => (
             <div key={image.name}>
               <div
-                className="group relative overflow-hidden rounded-lg cursor-pointer"
+                className="group relative overflow-hidden rounded-lg cursor-pointer h-64"
                 onClick={() => setSelectedImageIndex(index)}
               >
-                <LazyImage
+                <Image
                   src={image.url}
                   alt={image.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ")}
-                  className="h-64 w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-0 transition-opacity duration-300 group-hover:bg-opacity-40" />
 
