@@ -16,6 +16,7 @@ const nextConfig = {
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'mdx'],
   images: {
     domains: ['minio.gery.me'],
+    unoptimized: true,
   },
 }
 
