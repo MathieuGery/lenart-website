@@ -60,7 +60,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
 
       <Container className="mt-16 sm:mt-20">
         {/* Section des images (commentée pour l'instant) */}
-        <ShopGallery images={imagesWithUrls} />
+        <ShopGallery images={imagesWithUrls} bucketName={params.slug} />
       </Container>
     </>
   )

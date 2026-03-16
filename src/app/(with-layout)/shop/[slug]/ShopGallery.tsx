@@ -31,12 +31,13 @@ type PricingFormule = {
   features: string[]
 }
 
-// Clé de stockage localStorage
+// Clés de stockage localStorage
 const CART_STORAGE_KEY = 'shop-cart-items'
+const getCartStorageKey = (bucketName: string) => `shop-cart-items-${bucketName}`
+const getFormuleStorageKey = (bucketName: string) => `shop-cart-formule-${bucketName}`
+const getTotalPriceStorageKey = (bucketName: string) => `shop-cart-total-price-${bucketName}`
 
-
-
-export function ShopGallery({ images }: { images: ShopImage[] }) {
+export function ShopGallery({ images, bucketName }: { images: ShopImage[]; bucketName: string }) {
   // États existants
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
   const [cartItems, setCartItems] = useState<ShopImage[]>([])
@@ -129,40 +130,28 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
     // Vérifier qu'on est côté client
     if (typeof window === 'undefined') return;
 
-    const savedCartItems = localStorage.getItem(CART_STORAGE_KEY)
-    const savedTotalPrice = localStorage.getItem('shop-cart-total-price')
-    const savedFormule = localStorage.getItem('shop-cart-formule')
+    const bucketCartKey = getCartStorageKey(bucketName)
+    const bucketFormuleKey = getFormuleStorageKey(bucketName)
+    const savedCartItems = localStorage.getItem(bucketCartKey)
+    const savedFormule = localStorage.getItem(bucketFormuleKey)
 
     // Charger le panier s'il existe
     if (savedCartItems) {
       try {
         const parsedCartItems = JSON.parse(savedCartItems)
         // Vérifier que les items du panier correspondent aux images de cette collection
-        const validCartItems = parsedCartItems.filter((item: ShopImage) =>
-          images.some(img => img.name === item.name)
-        )
+        // et mettre à jour les URLs présignées avec celles fraîches du serveur
+        const validCartItems = parsedCartItems
+          .map((item: ShopImage) => {
+            const freshImage = images.find(img => img.name === item.name)
+            if (!freshImage) return null
+            return { ...item, url: freshImage.url }
+          })
+          .filter(Boolean) as ShopImage[]
         setCartItems(validCartItems)
-
-        // Si des items ont été filtrés, mettre à jour le localStorage
-        if (validCartItems.length !== parsedCartItems.length) {
-          localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(validCartItems))
-        }
       } catch (error) {
         console.error('Erreur lors du chargement du panier:', error)
-        localStorage.removeItem(CART_STORAGE_KEY)
-      }
-    }
-
-    // Charger le prix total s'il existe
-    if (savedTotalPrice) {
-      try {
-        const price = parseFloat(savedTotalPrice)
-        if (!isNaN(price)) {
-          setTotalPrice(price)
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement du prix:', error)
-        localStorage.removeItem('shop-cart-total-price')
+        localStorage.removeItem(bucketCartKey)
       }
     }
 
@@ -174,17 +163,17 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
         sessionStorage.setItem('temp-selected-formule-id', formule.id)
       } catch (error) {
         console.error('Erreur lors du chargement de la formule:', error)
-        localStorage.removeItem('shop-cart-formule')
+        localStorage.removeItem(bucketFormuleKey)
       }
     }
-  }, [images])
+  }, [images, bucketName])
 
-  // Sauvegarder le panier dans localStorage quand il change
+  // Sauvegarder le panier dans localStorage quand il change (clé spécifique au bucket)
   useEffect(() => {
     if (typeof window !== 'undefined' && isHydrated) {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems))
+      localStorage.setItem(getCartStorageKey(bucketName), JSON.stringify(cartItems))
     }
-  }, [cartItems, isHydrated])
+  }, [cartItems, isHydrated, bucketName])
 
   // Récupérer les formules depuis Supabase (une seule fois)
   useEffect(() => {
@@ -367,10 +356,10 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
   const handleCheckout = () => {
     if (!selectedFormule) return;
 
-    // Sauvegarde du prix et de la formule sélectionnée (le panier est déjà sauvegardé automatiquement)
+    // Sauvegarde du prix et de la formule dans les clés génériques pour le checkout
+    // ET dans les clés spécifiques au bucket pour la persistance
     if (typeof window !== 'undefined') {
-      localStorage.setItem('shop-cart-total-price', totalPrice.toString());
-      localStorage.setItem('shop-cart-formule', JSON.stringify({
+      const formuleData = JSON.stringify({
         id: selectedFormule.id,
         name: selectedFormule.name,
         base_price: selectedFormule.base_price,
@@ -379,7 +368,14 @@ export function ShopGallery({ images }: { images: ShopImage[] }) {
         extra_photo_price: selectedFormule.extra_photo_price,
         print_details: selectedFormule.print_details,
         print_photo_count: selectedFormule.print_photo_count,
-      }));
+      });
+      // Clés génériques pour le checkout
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+      localStorage.setItem('shop-cart-total-price', totalPrice.toString());
+      localStorage.setItem('shop-cart-formule', formuleData);
+      // Clés spécifiques au bucket pour la persistance
+      localStorage.setItem(getFormuleStorageKey(bucketName), formuleData);
+      localStorage.setItem(getTotalPriceStorageKey(bucketName), totalPrice.toString());
     }
 
     router.push('/shop/checkout');
