@@ -231,18 +231,20 @@ export default function CheckoutItems() {
   }, [])
 
   const removeFromCart = (itemToRemove: ShopImage) => {
-    const updatedCart = cartItems.filter(item => item.name !== itemToRemove.name)
+    const updatedCart = cartItems.filter(item => 
+      !(item.name === itemToRemove.name && item.bucket_name === itemToRemove.bucket_name)
+    )
     setCartItems(updatedCart)
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(updatedCart))
   }
 
   // Fonction pour marquer/démarquer une image pour impression
-  const toggleImageToPrint = (imageName: string) => {
+  const toggleImageToPrint = (imageName: string, bucketName: string) => {
     const currentSelectedCount = cartItems.filter(item => item.to_print).length
     const maxPrintPhotos = formuleDetails?.print_photo_count || 0
     
     const updatedCart = cartItems.map(item => {
-      if (item.name === imageName) {
+      if (item.name === imageName && item.bucket_name === bucketName) {
         // Si on veut cocher et qu'on a atteint la limite
         if (!item.to_print && currentSelectedCount >= maxPrintPhotos) {
           return item // Ne pas modifier
@@ -326,7 +328,7 @@ export default function CheckoutItems() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {cartItems.map((item) => (
-              <div key={item.name} className="flex border rounded-lg overflow-hidden relative group border-gray-400 shadow-xl">
+              <div key={`${item.bucket_name}-${item.name}`} className="flex border rounded-lg overflow-hidden relative group border-gray-400 shadow-xl">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={item.url}
@@ -339,7 +341,7 @@ export default function CheckoutItems() {
                       {item.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ")}
                     </h3>
                     <p className="text-sm text-gray-500 mt-1">
-                      Haute résolution
+                      {item.bucket_name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </p>
                   </div>
                   
@@ -354,7 +356,7 @@ export default function CheckoutItems() {
                         <input
                           type="checkbox"
                           checked={item.to_print || false}
-                          onChange={() => toggleImageToPrint(item.name)}
+                          onChange={() => toggleImageToPrint(item.name, item.bucket_name)}
                           disabled={!item.to_print && currentSelectedForPrint >= maxPrintPhotos}
                           className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
                         />
@@ -556,7 +558,7 @@ export default function CheckoutItems() {
             </h4>
             <div className="grid grid-cols-2 gap-2">
               {cartItems.map(item => (
-                <div key={item.name} className="text-sm truncate flex items-center">
+                <div key={`${item.bucket_name}-${item.name}`} className="text-sm truncate flex items-center">
                   <span>{item.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ")}</span>
                   {hasImpressions && item.to_print && (
                     <span className="ml-1 text-blue-600" title="À imprimer">🖨️</span>

@@ -31,11 +31,10 @@ type PricingFormule = {
   features: string[]
 }
 
-// Clés de stockage localStorage
+// Clé de stockage localStorage unique pour le panier commun
 const CART_STORAGE_KEY = 'shop-cart-items'
-const getCartStorageKey = (bucketName: string) => `shop-cart-items-${bucketName}`
-const getFormuleStorageKey = (bucketName: string) => `shop-cart-formule-${bucketName}`
-const getTotalPriceStorageKey = (bucketName: string) => `shop-cart-total-price-${bucketName}`
+const FORMULE_STORAGE_KEY = 'shop-cart-formule'
+const TOTAL_PRICE_STORAGE_KEY = 'shop-cart-total-price'
 
 export function ShopGallery({ images, bucketName }: { images: ShopImage[]; bucketName: string }) {
   // États existants
@@ -124,56 +123,55 @@ export function ShopGallery({ images, bucketName }: { images: ShopImage[]; bucke
 
   // Charger les données du localStorage côté client uniquement
   useEffect(() => {
-    // Marquer le composant comme hydraté
     setIsHydrated(true)
 
-    // Vérifier qu'on est côté client
     if (typeof window === 'undefined') return;
 
-    const bucketCartKey = getCartStorageKey(bucketName)
-    const bucketFormuleKey = getFormuleStorageKey(bucketName)
-    const savedCartItems = localStorage.getItem(bucketCartKey)
-    const savedFormule = localStorage.getItem(bucketFormuleKey)
+    const savedCartItems = localStorage.getItem(CART_STORAGE_KEY)
+    const savedFormule = localStorage.getItem(FORMULE_STORAGE_KEY)
 
-    // Charger le panier s'il existe
+    // Charger le panier commun s'il existe
     if (savedCartItems) {
       try {
-        const parsedCartItems = JSON.parse(savedCartItems)
-        // Vérifier que les items du panier correspondent aux images de cette collection
-        // et mettre à jour les URLs présignées avec celles fraîches du serveur
-        const validCartItems = parsedCartItems
-          .map((item: ShopImage) => {
+        const parsedCartItems = JSON.parse(savedCartItems) as ShopImage[]
+        // Rafraîchir les URLs présignées pour les items du bucket courant
+        const updatedCartItems = parsedCartItems.map((item: ShopImage) => {
+          if (item.bucket_name === bucketName) {
             const freshImage = images.find(img => img.name === item.name)
-            if (!freshImage) return null
-            return { ...item, url: freshImage.url }
-          })
-          .filter(Boolean) as ShopImage[]
-        setCartItems(validCartItems)
+            if (freshImage) {
+              return { ...item, url: freshImage.url }
+            }
+            // L'image n'existe plus dans ce bucket, la retirer
+            return null
+          }
+          // Items d'autres collections : les garder tels quels
+          return item
+        }).filter(Boolean) as ShopImage[]
+        setCartItems(updatedCartItems)
       } catch (error) {
         console.error('Erreur lors du chargement du panier:', error)
-        localStorage.removeItem(bucketCartKey)
+        localStorage.removeItem(CART_STORAGE_KEY)
       }
     }
 
-    // Charger la formule sélectionnée s'il existe (on la traitera après avoir chargé les formules)
+    // Charger la formule sélectionnée s'il existe
     if (savedFormule) {
       try {
         const formule = JSON.parse(savedFormule)
-        // On stocke temporairement l'ID de la formule pour la sélectionner plus tard
         sessionStorage.setItem('temp-selected-formule-id', formule.id)
       } catch (error) {
         console.error('Erreur lors du chargement de la formule:', error)
-        localStorage.removeItem(bucketFormuleKey)
+        localStorage.removeItem(FORMULE_STORAGE_KEY)
       }
     }
   }, [images, bucketName])
 
-  // Sauvegarder le panier dans localStorage quand il change (clé spécifique au bucket)
+  // Sauvegarder le panier commun dans localStorage quand il change
   useEffect(() => {
     if (typeof window !== 'undefined' && isHydrated) {
-      localStorage.setItem(getCartStorageKey(bucketName), JSON.stringify(cartItems))
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems))
     }
-  }, [cartItems, isHydrated, bucketName])
+  }, [cartItems, isHydrated])
 
   // Récupérer les formules depuis Supabase (une seule fois)
   useEffect(() => {
@@ -326,26 +324,31 @@ export function ShopGallery({ images, bucketName }: { images: ShopImage[]; bucke
 
   }, [selectedFormule, cartItems, isLoadingPricing]);
 
-  // Fonctions existantes modifiées
+  // Identification unique d'un item par nom + bucket
   const isInCart = useCallback((image: ShopImage) => {
-    return cartItems.some(item => item.name === image.name)
+    return cartItems.some(item => item.name === image.name && item.bucket_name === image.bucket_name)
   }, [cartItems])
 
   const toggleCartItem = useCallback((image: ShopImage, e?: React.MouseEvent) => {
-    // Si un événement est fourni, empêcher la propagation pour éviter d'ouvrir l'image
     if (e) {
       e.stopPropagation()
     }
 
     setCartItems(prev => {
-      // Si l'image est déjà dans le panier, la retirer
       if (isInCart(image)) {
-        return prev.filter(item => item.name !== image.name)
+        return prev.filter(item => !(item.name === image.name && item.bucket_name === image.bucket_name))
       }
-      // Sinon, l'ajouter
       return [...prev, image]
     })
   }, [isInCart])
+
+  // Grouper les items du panier par collection pour l'affichage
+  const cartItemsByBucket = cartItems.reduce((acc, item) => {
+    const bucket = item.bucket_name || 'Autre'
+    if (!acc[bucket]) acc[bucket] = []
+    acc[bucket].push(item)
+    return acc
+  }, {} as Record<string, ShopImage[]>)
 
   // Fonction pour changer de formule
   const handleFormuleChange = (formule: PricingFormule) => {
@@ -356,10 +359,10 @@ export function ShopGallery({ images, bucketName }: { images: ShopImage[]; bucke
   const handleCheckout = () => {
     if (!selectedFormule) return;
 
-    // Sauvegarde du prix et de la formule dans les clés génériques pour le checkout
-    // ET dans les clés spécifiques au bucket pour la persistance
     if (typeof window !== 'undefined') {
-      const formuleData = JSON.stringify({
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+      localStorage.setItem(TOTAL_PRICE_STORAGE_KEY, totalPrice.toString());
+      localStorage.setItem(FORMULE_STORAGE_KEY, JSON.stringify({
         id: selectedFormule.id,
         name: selectedFormule.name,
         base_price: selectedFormule.base_price,
@@ -368,14 +371,7 @@ export function ShopGallery({ images, bucketName }: { images: ShopImage[]; bucke
         extra_photo_price: selectedFormule.extra_photo_price,
         print_details: selectedFormule.print_details,
         print_photo_count: selectedFormule.print_photo_count,
-      });
-      // Clés génériques pour le checkout
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
-      localStorage.setItem('shop-cart-total-price', totalPrice.toString());
-      localStorage.setItem('shop-cart-formule', formuleData);
-      // Clés spécifiques au bucket pour la persistance
-      localStorage.setItem(getFormuleStorageKey(bucketName), formuleData);
-      localStorage.setItem(getTotalPriceStorageKey(bucketName), totalPrice.toString());
+      }));
     }
 
     router.push('/shop/checkout');
@@ -422,21 +418,30 @@ export function ShopGallery({ images, bucketName }: { images: ShopImage[]; bucke
                     Vider tout
                   </button>
                 </div>
-                <div className="max-h-32 overflow-y-auto border-b pb-3">
-                  {cartItems.map(item => (
-                    <div key={item.name} className="flex items-center justify-between py-1">
-                      <span className="text-sm truncate" style={{ maxWidth: '180px' }}>
-                        {item.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ")}
-                      </span>
-                      <button
-                        className="text-red-500 text-xs hover:text-red-700"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleCartItem(item);
-                        }}
-                      >
-                        Retirer
-                      </button>
+                <div className="max-h-40 overflow-y-auto border-b pb-3">
+                  {Object.entries(cartItemsByBucket).map(([bucket, items]) => (
+                    <div key={bucket}>
+                      {Object.keys(cartItemsByBucket).length > 1 && (
+                        <p className="text-xs font-semibold text-gray-500 uppercase mt-2 mb-1">
+                          {bucket.replace(/-/g, ' ')}
+                        </p>
+                      )}
+                      {items.map(item => (
+                        <div key={`${item.bucket_name}-${item.name}`} className="flex items-center justify-between py-1">
+                          <span className="text-sm truncate" style={{ maxWidth: '180px' }}>
+                            {item.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ")}
+                          </span>
+                          <button
+                            className="text-red-500 text-xs hover:text-red-700"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleCartItem(item);
+                            }}
+                          >
+                            Retirer
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>
